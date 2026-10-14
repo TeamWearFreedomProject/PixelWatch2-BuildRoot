@@ -1,0 +1,4 @@
+#!/bin/sh
+# Minimal Linux PID 1 entry point for built-in initramfs experiments.
+# BusyBox init will execute the default Buildroot /etc/inittab.
+exec /sbin/init
