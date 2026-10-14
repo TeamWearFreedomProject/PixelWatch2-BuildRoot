@@ -1,0 +1,56 @@
+name: Stage 2 - Kernel and built-in initramfs (UNVERIFIED)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage2-kernel.yml'
+      - 'scripts/stage2-build.sh'
+      - 'scripts/verify_bootimg.py'
+      - 'board/**'
+      - 'configs/**'
+      - 'docs/STAGE2.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage2:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 330
+    steps:
+      - name: Checkout experimental source
+        uses: actions/checkout@v4
+
+      - name: Install Buildroot and cross-compiler dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential bc bison cpio curl file flex git gzip \
+            libelf-dev libncurses-dev libssl-dev lz4 make patch perl \
+            python3 rsync sed tar unzip wget xz-utils \
+            gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu dwarves
+
+      - name: Build rootfs + ARM64 kernel + boot header v4
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/stage2-build.sh 2>&1 | tee stage2-build.log
+
+      - name: Upload Stage 2 build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage2-build-log
+          path: stage2-build.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload unverified boot image and configs
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage2-boot-UNVERIFIED-DO-NOT-FLASH
+          path: stage2-artifacts/
+          retention-days: 7
+          if-no-files-found: error
