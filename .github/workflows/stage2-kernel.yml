@@ -4,9 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/stage2-kernel.yml'
-      - 'scripts/stage2-build.sh'
-      - 'scripts/verify_bootimg.py'
-      - 'scripts/patch_bam_ndp.py'
+      - 'scripts/**'
       - 'board/**'
       - 'configs/**'
       - 'docs/STAGE2.md'
@@ -32,22 +30,55 @@ jobs:
             python3 rsync sed tar unzip wget xz-utils \
             gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu dwarves
 
-      - name: Build rootfs + ARM64 kernel + boot header v4
+      - name: Kernel preflight — compile BAM, SCM and QUSB only
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/stage2-preflight.sh 2>&1 | tee stage2-preflight.log
+
+      - name: Restore ARM32 rootfs cache
+        id: rootfs-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            stage2-work/br-output/images/rootfs.tar
+            stage2-work/br-output/images/rootfs.cpio.gz
+          key: aurora-arm32-rootfs-v1-${{ hashFiles('configs/aurora_arm32_defconfig', 'board/google/aurora/rootfs-overlay/**', 'external.desc', 'external.mk', 'Config.in') }}
+
+      - name: Build or verify cached rootfs
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/stage2-rootfs.sh 2>&1 | tee stage2-rootfs.log
+
+      - name: Save ARM32 rootfs cache before full kernel build
+        if: steps.rootfs-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            stage2-work/br-output/images/rootfs.tar
+            stage2-work/br-output/images/rootfs.cpio.gz
+          key: aurora-arm32-rootfs-v1-${{ hashFiles('configs/aurora_arm32_defconfig', 'board/google/aurora/rootfs-overlay/**', 'external.desc', 'external.mk', 'Config.in') }}
+
+      - name: Compile ARM64 Image and assemble unverified boot.img
         shell: bash
         run: |
           set -o pipefail
           bash scripts/stage2-build.sh 2>&1 | tee stage2-build.log
 
-      - name: Upload Stage 2 build log
+      - name: Upload Stage 2 diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: aurora-stage2-build-log
-          path: stage2-build.log
+          name: aurora-stage2-build-logs
+          path: |
+            stage2-preflight.log
+            stage2-rootfs.log
+            stage2-build.log
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Upload unverified boot image and configs
+      - name: Upload research-only boot artifacts
         if: success()
         uses: actions/upload-artifact@v4
         with:

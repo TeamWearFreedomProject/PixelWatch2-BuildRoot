@@ -1,47 +1,35 @@
-# Stage 2 — Kernel + built-in initramfs experiment
+# Stage 2 — ARM64 Linux kernel with built-in ARM32 Buildroot initramfs
 
-**Status: not validated on hardware. Generated files are for offline inspection only. Do NOT flash or boot them on the watch yet.**
+**Research only — DO NOT FLASH.** This is not a verified Pixel Watch 2 bootable build.
 
-Stage 1 generated a 32-bit ARM/musl Buildroot rootfs. Stage 2 compiles an **ARM64 kernel** with that **ARM32 userspace built into the kernel** as an initramfs. It then packages the resulting *uncompressed* kernel `Image` as an **Android boot image header v4**.
+## Current findings
 
-## Why this layout?
+- [First failed Stage 2 run](https://github.com/TeamWearFreedomProject/PixelWatch2-BuildRoot/actions/runs/38503278603): error compiling Qualcomm BAM SPS driver — NDP-only constants undefined when the NDP support configuration is off.
+- [Second failed run](https://github.com/TeamWearFreedomProject/PixelWatch2-BuildRoot/actions/runs/38506637216): after the focused NDP guard patch, compilation advanced past BAM, but `drivers/usb/phy/phy-msm-qusb.c` references an undeclared function `qcom_scm_phy_update_scm_level_shifter` at line 204.
+- Qualcomm engineer's [proposed upstream Linux patch, September 15 2022](https://lists.openwall.net/linux-kernel/2022/09/15/779) included that function with a secure-monitor QUSB level-shifter command, plus the header and SCM command constant. A maintainer [requested changes](https://lists.openwall.net/linux-kernel/2022/09/15/1001). Therefore the 2022 patch is **not independently verified as accepted upstream**.
+- The CI-only experimental implementation in `scripts/patch_qusb_scm.py` is based on that proposal and guarded by exact source-layout checks. **Successful compilation does not establish secure monitor command compatibility on the Pixel Watch 2. Do not boot or flash images produced with this unverified function.**
 
-- [argosphil/aurora](https://github.com/argosphil/aurora) reports that the Watch 2 bootloader expects an **uncompressed ARM64 kernel**, and that a separately supplied boot ramdisk can be lost/overridden by other Android boot partitions. An internal initramfs was one research workaround.
-- The upstream kernel `defconfig` enables `CONFIG_ARM64=y`, `CONFIG_COMPAT=y`, `CONFIG_COMPAT_BINFMT_ELF=y`, so an AArch32 userspace is *plausible* on this AArch64 kernel.
-- [UBports google-eos](https://gitlab.com/ubports/porting/community-ports/android13/google-eos/google-eos) specifies TWD9.240405.001 for its Halium-based Ubuntu Touch port. This does **not** prove that an arbitrary TWD9 firmware or this kernel configuration is compatible.
-- [Google/Qualcomm EOS 5.15 kernel](https://android.googlesource.com/kernel/msm/+/refs/heads/android-msm-eos-5.15-tm-wear-kr3-pixel-watch) and [Monaco build config](https://android.googlesource.com/kernel/msm/+/refs/heads/android-msm-eos-5.15-tm-wear-kr3-pixel-watch/build.config.msm.monaco) are the kernel-source baseline.
+## Build stages (fail fast and save time)
 
-## Build procedure
+1. Clone Google's `android-msm-eos-5.15-tm-wear-kr3-pixel-watch` kernel and download the `argosphil/aurora` research config pinned to commit `e3d5fc73b4c97ea19ae5a0fd1d4eee1324703ad0`.
+2. Locally apply the narrow SPS/NDP guard and experimental SCM helper, then **preflight-compile only three driver objects** before building the expensive ARM32 Buildroot rootfs.
+3. Restore `rootfs.cpio.gz` and `rootfs.tar` from GitHub Actions cache if available; otherwise build and **save these artifacts to cache before the expensive full kernel compile**. The cache key includes the rootfs configuration and rootfs-overlay. Cache restoration is opportunistic.
+4. Embed the cached/built rootfs through `CONFIG_INITRAMFS_SOURCE` and compile the complete ARM64 kernel `Image`.
+5. If successful, package an Android boot header v4 `boot.img` using AOSP `mkbootimg`, then verify the header, kernel payload, absence of an external Android ramdisk, and the 64MiB size ceiling.
 
-Open the workflow [Stage 2 - Kernel and built-in initramfs](../.github/workflows/stage2-kernel.yml). On a pull request, this runs automatically. Buildroot and the Google kernel are cloned by GitHub Actions; only the free source files and kernel config are downloaded.
+The initial ARM32 rootfs was confirmed by GitHub Actions as an ELF 32-bit ARM musl userspace, which is compatible *in principle* with a kernel configured for `CONFIG_COMPAT=y` and `CONFIG_COMPAT_BINFMT_ELF=y`. Real hardware/driver compatibility remains unverified.
 
-1. Buildroot builds ARM32 rootfs and checks `/init`, `/sbin/init` and BusyBox.
-2. EOS 5.15 source is cloned; the `argosphil/aurora` defconfig is downloaded from **commit e3d5fc73b4c97ea19ae5a0fd1d4eee1324703ad0**.
-3. The kernel is configured with `CONFIG_INITRAMFS_SOURCE=<Buildroot rootfs.cpio.gz>` and `CONFIG_COMPAT=y`. `CONFIG_WERROR` is disabled for compiler compatibility. The intent is an **uncompressed ARM64 Image**.
-4. AOSP `mkbootimg` packages the compiled `Image` into a **v4 boot.img** with **no additional Android boot ramdisk or DTB**.
-5. `verify_bootimg.py` checks format, kernel bytes, absence of external ramdisk and 64MiB size ceiling.
+## Boundaries
 
-**This is a first attempt at compiling the extracted upstream config, not a proven reproducible Aurora kernel build.** The original research may require extra modules, patches and exact toolchain matching; the mainline Ubuntu runner and GCC are *not* the original compiler environment.
+- No `init_boot.img`, `vendor_boot.img`, `dtb.img`, `dtbo.img`, or `userdata.img` is created or modified.
+- The watch is never connected, flashed, erased, or repartitioned by CI.
+- The existing firmware was described as TWD9, but the exact full build number and kernel/DTB compatibility are not verified.
+- Both earlier Stage 2 runs failed; this update is a **new unverified experiment**, not a claimed fix.
+- Kernel sources and experimental patches are all confined to disposable GitHub Actions runners.
+- Upstream code belongs to its authors. Keep citations, license terms, and uncertainties visible.
 
-A successful workflow establishes **only build and basic image format**. It does not prove USB logs, display, charger safety, a working shell, DTB compatibility, AVB acceptance, `fastboot boot` support, or bootability. Never infer those from a green CI run.
+## References
 
-## Stage 2 first-run failure & targeted experiment
-
-[Run #38503278603](https://github.com/TeamWearFreedomProject/PixelWatch2-BuildRoot/actions/runs/38503278603) successfully built ARM32/musl rootfs and reached the ARM64 kernel compiler, then failed in `drivers/soc/qcom/sps/bam.c` on `P_HALT_P_LAST_DESC_ZLT` and `P_HALT_P_PIPE_EMPTY`.
-
-The argosphil kernel config has `# CONFIG_SPS_SUPPORT_NDP_BAM is not set`. The affected status bits are NDP-specific; the kernel source's two query blocks reference them without a guard. The CI-only workaround in `scripts/patch_bam_ndp.py` puts **exactly those two status queries** under `#ifdef CONFIG_SPS_SUPPORT_NDP_BAM`, leaving their existing conservative `return false` path in place on non-NDP builds. It does **not** define hardware bits, force-enable NDP, turn off the entire SPS driver, or modify an upstream repository. It fails if the source shape or config differs.
-
-**IMPORTANT:** This is a scoped hypothesis intended to keep compilation moving, not an established fix for the real BAM hardware or an endorsement for booting this kernel. Test the next CI run and inspect the next error or image verification failure before any device use.
-
-## Images & firmware
-
-- `boot.img`: produced *only if* kernel compilation and format checks succeed; **research-only**.
-- `init_boot.img`: **not generated**; do not replace existing boot partition companions.
-- `vendor_boot.img`, `dtb.img`, `dtbo.img`, `userdata`: **not generated or modified**.
-- Build stage does not include any flashing, wiping, repartitioning, recovery sideload or fastboot device commands.
-
-## Next tasks after CI
-
-- If compilation fails: inspect exact first error and compare `CONFIG_*` / external tree and toolchain with upstream research.
-- If compilation passes: verify exact TWD9 build ID, bootloader, current slot, header of a matching stock `boot.img` and selected live DTB/DTBO before hardware test.
-- Investigate console and power/charging behavior before making any sustained-on-device experiment.
+- [argosphil/aurora](https://github.com/argosphil/aurora) — AArch64 kernel research, internal initramfs, barebox experiments and display/USB issues.
+- [UBports google-eos](https://gitlab.com/ubports/porting/community-ports/android13/google-eos/google-eos) — Halium/Ubuntu Touch TWD9.240405.001 reference, **not** proof of Buildroot compatibility.
+- [Google EOS kernel](https://android.googlesource.com/kernel/msm/+/refs/heads/android-msm-eos-5.15-tm-wear-kr3-pixel-watch).
