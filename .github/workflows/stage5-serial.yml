@@ -1,0 +1,79 @@
+name: Stage 5 - USB serial login research (DO NOT BOOT)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage5-serial.yml'
+      - 'stage5/**'
+      - 'docs/STAGE5.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage5:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 330
+    steps:
+      - name: Checkout Stage 5 research source
+        uses: actions/checkout@v4
+
+      - name: Install Buildroot and kernel compiler dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            build-essential bc bison cpio curl file flex git gzip \
+            libelf-dev libncurses-dev libssl-dev lz4 make patch perl \
+            python3 rsync sed tar unzip wget xz-utils \
+            gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu dwarves
+
+      - name: Preflight BAM SCM USB PHY and charger compilation
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/stage2-preflight.sh 2>&1 | tee stage5-preflight.log
+
+      - name: Restore ARM32 serial rootfs cache
+        id: rootfs-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            stage2-work/br-output/images/rootfs.tar
+            stage2-work/br-output/images/rootfs.cpio.gz
+          key: aurora-stage5-acm-v1-${{ hashFiles('configs/aurora_arm32_adbd_defconfig', 'board/google/aurora/rootfs-overlay/**', 'stage5/**') }}
+
+      - name: Build ARM32 ttyGS0 rootfs and research boot image
+        shell: bash
+        run: |
+          set -o pipefail
+          bash stage5/build.sh 2>&1 | tee stage5-build.log
+
+      - name: Save verified serial rootfs cache
+        if: success() && steps.rootfs-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            stage2-work/br-output/images/rootfs.tar
+            stage2-work/br-output/images/rootfs.cpio.gz
+          key: aurora-stage5-acm-v1-${{ hashFiles('configs/aurora_arm32_adbd_defconfig', 'board/google/aurora/rootfs-overlay/**', 'stage5/**') }}
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage5-build-logs
+          path: |
+            stage5-preflight.log
+            stage5-build.log
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload compilation-only boot artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage5-USB-SERIAL-DO-NOT-BOOT
+          path: stage5-artifacts/
+          retention-days: 30
+          if-no-files-found: error

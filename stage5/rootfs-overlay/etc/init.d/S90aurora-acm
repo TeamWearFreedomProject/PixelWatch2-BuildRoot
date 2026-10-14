@@ -1,0 +1,8 @@
+#!/bin/sh
+# BusyBox init.d service, not a network daemon.
+case "$1" in
+    start) /usr/sbin/aurora-acm ;;
+    stop) : ;;
+    restart) /usr/sbin/aurora-acm ;;
+    *) exit 2 ;;
+esac

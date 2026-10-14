@@ -1,0 +1,29 @@
+#!/bin/sh
+# DEVELOPMENT ONLY: ConfigFS USB CDC ACM gadget for ttyGS0.
+# Requires a functioning USB UDC, PHY, kernel and compatible device tree.
+set -eu
+[ -f /etc/aurora/dev-acm-enabled ] || exit 0
+[ -d /sys/class/udc ] || { echo 'Aurora: no UDC' >&2; exit 0; }
+[ -d /sys/kernel/config ] || exit 0
+if ! grep -q ' /sys/kernel/config configfs ' /proc/mounts; then
+    mount -t configfs configfs /sys/kernel/config || exit 0
+fi
+G=/sys/kernel/config/usb_gadget/aurora_debug
+mkdir -p "$G"
+# Example IDs used in Linux gadget demos: NOT assigned to Aurora.
+echo 0x1d6b > "$G/idVendor"
+echo 0x0104 > "$G/idProduct"
+mkdir -p "$G/strings/0x409" "$G/configs/c.1/strings/0x409"
+echo 'Aurora Development' > "$G/strings/0x409/manufacturer"
+echo 'Aurora serial research' > "$G/strings/0x409/product"
+echo 'UNVERIFIED-AURORA' > "$G/strings/0x409/serialnumber"
+echo 'Development CDC ACM' > "$G/configs/c.1/strings/0x409/configuration"
+mkdir -p "$G/functions/acm.GS0"
+[ -L "$G/configs/c.1/acm.GS0" ] ||
+    ln -s "$G/functions/acm.GS0" "$G/configs/c.1/acm.GS0"
+[ ! -s "$G/UDC" ] || exit 0
+set -- /sys/class/udc/*
+[ -e "$1" ] || { echo 'Aurora: UDC is not registered' >&2; exit 0; }
+UDC="$(basename "$1")"
+echo "$UDC" > "$G/UDC" || { echo 'Aurora: UDC bind failed' >&2; exit 0; }
+echo 'Aurora: CDC ACM configuration attempted (unverified)' >&2
