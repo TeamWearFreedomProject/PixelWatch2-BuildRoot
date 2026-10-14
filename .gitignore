@@ -1,0 +1,8 @@
+# Local Buildroot sources/output
+/buildroot/
+/output/
+/dl/
+*.img
+*.dtb
+*.dtbo
+*.zip

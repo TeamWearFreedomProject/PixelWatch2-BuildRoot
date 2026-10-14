@@ -1,0 +1,64 @@
+name: Build Aurora minimal rootfs (research-only)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/build-rootfs.yml'
+      - 'configs/**'
+      - 'board/**'
+      - 'external.desc'
+      - 'external.mk'
+      - 'Config.in'
+
+permissions:
+  contents: read
+
+jobs:
+  rootfs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      BUILDROOT_REF: "2025.02.1"
+    steps:
+      - name: Checkout external tree
+        uses: actions/checkout@v4
+
+      - name: Install host packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y             build-essential bc bison cpio file flex git gzip             libncurses-dev make patch perl python3 rsync sed             tar unzip wget xz-utils
+
+      - name: Fetch pinned Buildroot
+        run: |
+          git clone --depth 1 --branch "$BUILDROOT_REF"             https://github.com/buildroot/buildroot.git buildroot
+
+      - name: Configure ARM64 rootfs
+        run: |
+          make -C buildroot BR2_EXTERNAL="$GITHUB_WORKSPACE"             O="$GITHUB_WORKSPACE/output" aurora_minimal_defconfig
+
+      - name: Build rootfs
+        run: |
+          make -C buildroot O="$GITHUB_WORKSPACE/output" -j2
+
+      - name: Validate artifacts without flashing
+        run: |
+          test -s output/images/rootfs.tar
+          test -s output/images/rootfs.cpio.gz
+          tar -tf output/images/rootfs.tar > /tmp/aurora-rootfs-files.txt
+          grep -E '(^|/)usr/bin/aurora-info$' /tmp/aurora-rootfs-files.txt
+          cp output/.config output/images/aurora.buildroot.config
+          cd output/images
+          sha256sum rootfs.tar rootfs.cpio.gz > SHA256SUMS
+
+      - name: Upload research-only rootfs
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-minimal-rootfs-NOT-FLASHABLE
+          path: |
+            output/images/rootfs.tar
+            output/images/rootfs.cpio.gz
+            output/images/aurora.buildroot.config
+            output/images/SHA256SUMS
+          retention-days: 7
+          if-no-files-found: error

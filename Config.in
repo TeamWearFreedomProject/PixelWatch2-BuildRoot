@@ -1,0 +1,2 @@
+# Intentionally empty during the rootfs-only bootstrap stage.
+# Future custom packages (UI, watch services) will be sourced here.
