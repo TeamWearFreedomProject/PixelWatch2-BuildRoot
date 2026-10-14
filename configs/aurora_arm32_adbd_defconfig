@@ -1,0 +1,17 @@
+# Stage 3 research: ARM32 adbd userspace variant only.
+# Does not configure a USB gadget/UDC and does not include or modify a kernel.
+# Do NOT flash or boot this standalone rootfs.
+BR2_arm=y
+BR2_cortex_a53=y
+BR2_ARM_FPU_NEON_VFPV4=y
+BR2_TOOLCHAIN_BUILDROOT_MUSL=y
+BR2_INIT_BUSYBOX=y
+BR2_PACKAGE_BUSYBOX=y
+BR2_PACKAGE_ANDROID_TOOLS=y
+BR2_PACKAGE_ANDROID_TOOLS_ADBD=y
+BR2_TARGET_GENERIC_HOSTNAME="aurora"
+BR2_TARGET_GENERIC_ISSUE="Aurora Stage 3 research (ARM32 adbd)"
+BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL_AURORA_WATCH_PATH)/board/google/aurora/rootfs-overlay"
+BR2_TARGET_ROOTFS_CPIO=y
+BR2_TARGET_ROOTFS_CPIO_GZIP=y
+BR2_TARGET_ROOTFS_TAR=y
