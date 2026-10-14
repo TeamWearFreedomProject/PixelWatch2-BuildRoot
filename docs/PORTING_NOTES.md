@@ -31,7 +31,9 @@ Owner-provided DTB and DTBO were analyzed separately in this conversation, yield
 
 ## 4. Buildroot Stage 1 limitations
 
-The `aurora_minimal_defconfig` intentionally produces just **arm64/musl/BusyBox rootfs.tar and rootfs.cpio.gz**.
+Two deliberately isolated configurations exist: `aurora_arm32_defconfig` (**ARM32**, Cortex-A53 AArch32, NEON/VFPv4, musl, BusyBox) and `aurora_minimal_defconfig` (**ARM64**, musl, BusyBox). Both produce rootfs.tar and rootfs.cpio.gz only.
+
+**ABI note:** LineageOS device tree uses `TARGET_ARCH := arm` / `armeabi-v7a` (Android userspace). The argosphil Linux 5.15.104 defconfig includes `CONFIG_ARM64=y`, `CONFIG_COMPAT=y`, and `CONFIG_COMPAT_BINFMT_ELF=y`, indicating 32-bit ELF compat in that specific kernel configuration. This is not yet a runtime test; missing vendor modules, firmware or kernel-userland interfaces can still prevent boot. A native 64-bit rootfs is not categorically ruled out by a 32-bit Android userspace.
 
 This initial configuration **does not** build a bootable `boot.img`, Linux kernel, vendor modules, touchscreen driver, display driver, charging controls, Wi-Fi, watch UI or persistent storage.
 
