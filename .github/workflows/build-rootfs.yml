@@ -1,0 +1,96 @@
+name: Build Aurora minimal rootfs (research-only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      userspace:
+        description: "Rootfs userspace ABI (not a boot image)"
+        type: choice
+        required: true
+        default: arm32
+        options:
+          - arm32
+          - arm64
+  pull_request:
+    paths:
+      - '.github/workflows/build-rootfs.yml'
+      - 'configs/**'
+      - 'board/**'
+      - 'external.desc'
+      - 'external.mk'
+      - 'Config.in'
+
+permissions:
+  contents: read
+
+jobs:
+  rootfs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      BUILDROOT_REF: "2025.02.1"
+      USERSPACE: ${{ inputs.userspace || 'arm32' }}
+    steps:
+      - name: Checkout external tree
+        uses: actions/checkout@v4
+
+      - name: Install host packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential bc bison cpio file flex git gzip \
+            libncurses-dev make patch perl python3 rsync sed \
+            tar unzip wget xz-utils
+
+      - name: Fetch pinned Buildroot
+        run: |
+          git clone --depth 1 --branch "$BUILDROOT_REF" \
+            https://github.com/buildroot/buildroot.git buildroot
+
+      - name: Configure selected userspace
+        run: |
+          case "$USERSPACE" in
+            arm32) DEFCONFIG=aurora_arm32_defconfig ;;
+            arm64) DEFCONFIG=aurora_minimal_defconfig ;;
+            *) echo "Unexpected userspace: $USERSPACE"; exit 2 ;;
+          esac
+          make -C buildroot BR2_EXTERNAL="$GITHUB_WORKSPACE" \
+            O="$GITHUB_WORKSPACE/output" "$DEFCONFIG"
+          if [ "$USERSPACE" = arm32 ]; then
+            grep -qx 'BR2_arm=y' output/.config
+          else
+            grep -qx 'BR2_aarch64=y' output/.config
+          fi
+
+      - name: Build rootfs
+        run: |
+          make -C buildroot O="$GITHUB_WORKSPACE/output" -j2
+
+      - name: Validate ELF architecture and rootfs (no flashing)
+        run: |
+          test -s output/images/rootfs.tar
+          test -s output/images/rootfs.cpio.gz
+          mkdir -p /tmp/aurora-verify
+          tar -xf output/images/rootfs.tar -C /tmp/aurora-verify
+          test -x /tmp/aurora-verify/bin/busybox
+          file /tmp/aurora-verify/bin/busybox | tee /tmp/busybox-elf.txt
+          case "$USERSPACE" in
+            arm32) grep -q 'ELF 32-bit.*ARM' /tmp/busybox-elf.txt ;;
+            arm64) grep -q 'ELF 64-bit.*ARM aarch64' /tmp/busybox-elf.txt ;;
+          esac
+          test -x /tmp/aurora-verify/usr/bin/aurora-info
+          cp output/.config output/images/aurora.buildroot.config
+          cd output/images
+          sha256sum rootfs.tar rootfs.cpio.gz > SHA256SUMS
+
+      - name: Upload research-only rootfs
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-${{ env.USERSPACE }}-rootfs-NOT-FLASHABLE
+          path: |
+            output/images/rootfs.tar
+            output/images/rootfs.cpio.gz
+            output/images/aurora.buildroot.config
+            output/images/SHA256SUMS
+          retention-days: 7
+          if-no-files-found: error

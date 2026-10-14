@@ -1,0 +1,12 @@
+# Rootfs-only proof of build: this is NOT a Pixel Watch 2 boot image.
+BR2_aarch64=y
+BR2_cortex_a53=y
+BR2_TOOLCHAIN_BUILDROOT_MUSL=y
+BR2_INIT_BUSYBOX=y
+BR2_PACKAGE_BUSYBOX=y
+BR2_TARGET_GENERIC_HOSTNAME="aurora"
+BR2_TARGET_GENERIC_ISSUE="Aurora experimental Linux"
+BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL_AURORA_WATCH_PATH)/board/google/aurora/rootfs-overlay"
+BR2_TARGET_ROOTFS_CPIO=y
+BR2_TARGET_ROOTFS_CPIO_GZIP=y
+BR2_TARGET_ROOTFS_TAR=y

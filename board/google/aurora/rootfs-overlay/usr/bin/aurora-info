@@ -1,0 +1,4 @@
+#!/bin/sh
+printf '%s\n' 'Aurora Buildroot / Pixel Watch 2 research'
+printf '%s\n' 'Status: experimental root filesystem only.'
+printf '%s\n' 'Not a flashable image. No display, touch or power support is implied.'
