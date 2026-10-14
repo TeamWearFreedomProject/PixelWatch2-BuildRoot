@@ -1,0 +1,87 @@
+name: Stage 4 - Silent ARM64 image with ARM32 adbd (UNVERIFIED)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage4-silent-adbd.yml'
+      - 'stage4/**'
+      - 'docs/STAGE4.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage4:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 330
+    steps:
+      - name: Checkout experimental source
+        uses: actions/checkout@v4
+
+      - name: Install cross-compiler and Buildroot dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            build-essential bc bison cpio curl file flex git gzip \
+            libelf-dev libncurses-dev libssl-dev lz4 make patch perl \
+            python3 rsync sed tar unzip wget xz-utils \
+            gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu dwarves
+
+      - name: Preflight known kernel errors (BAM, SCM, QUSB, power)
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/stage2-preflight.sh 2>&1 | tee stage4-preflight.log
+
+      - name: Restore Stage 4 adbd rootfs cache
+        id: adbd-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            stage2-work/br-output/images/rootfs.tar
+            stage2-work/br-output/images/rootfs.cpio.gz
+          key: aurora-stage4-adbd-arm32-v1-${{ hashFiles('configs/aurora_arm32_adbd_defconfig', 'board/google/aurora/rootfs-overlay/**') }}
+
+      - name: Build or inspect adbd-enabled rootfs
+        shell: bash
+        run: |
+          set -o pipefail
+          bash stage4/build-rootfs.sh 2>&1 | tee stage4-rootfs.log
+
+      - name: Save adbd rootfs before expensive kernel build
+        if: steps.adbd-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            stage2-work/br-output/images/rootfs.tar
+            stage2-work/br-output/images/rootfs.cpio.gz
+          key: aurora-stage4-adbd-arm32-v1-${{ hashFiles('configs/aurora_arm32_adbd_defconfig', 'board/google/aurora/rootfs-overlay/**') }}
+
+      - name: Compile Linux SOUND=n kernel and embed adbd rootfs
+        shell: bash
+        run: |
+          set -o pipefail
+          bash stage4/build-stage4.sh 2>&1 | tee stage4-kernel.log
+
+      - name: Always upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage4-build-logs
+          path: |
+            stage4-preflight.log
+            stage4-rootfs.log
+            stage4-kernel.log
+            stage4-rootfs-verification.txt
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload offline research image (NOT BOOTABLE)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage4-SILENT-ADBD-UNVERIFIED-DO-NOT-BOOT
+          path: stage4-artifacts/
+          retention-days: 30
+          if-no-files-found: error
