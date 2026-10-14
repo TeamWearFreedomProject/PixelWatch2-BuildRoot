@@ -30,7 +30,7 @@ jobs:
             python3 rsync sed tar unzip wget xz-utils \
             gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu dwarves
 
-      - name: Kernel preflight — compile BAM, SCM and QUSB only
+      - name: Kernel preflight — compile BAM, SCM, QUSB and power supply
         shell: bash
         run: |
           set -o pipefail
@@ -75,7 +75,7 @@ jobs:
             stage2-preflight.log
             stage2-rootfs.log
             stage2-build.log
-          retention-days: 7
+          retention-days: 30
           if-no-files-found: ignore
 
       - name: Upload research-only boot artifacts
@@ -84,5 +84,5 @@ jobs:
         with:
           name: aurora-stage2-boot-UNVERIFIED-DO-NOT-FLASH
           path: stage2-artifacts/
-          retention-days: 7
+          retention-days: 30
           if-no-files-found: error
