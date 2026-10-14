@@ -1,0 +1,58 @@
+name: Stage 3 - Build ARM32 adbd rootfs (manual, NOT FLASHABLE)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adbd-rootfs:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Buildroot host requirements
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y build-essential cpio file git gzip \
+            libssl-dev make patch perl python3 rsync sed tar unzip wget xz-utils
+      - name: Build separate adbd-enabled ARM32 rootfs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch 2025.02.1 \
+            https://github.com/buildroot/buildroot.git stage3-buildroot
+          make -C stage3-buildroot BR2_EXTERNAL="$GITHUB_WORKSPACE" \
+            O="$GITHUB_WORKSPACE/stage3-output" aurora_arm32_adbd_defconfig
+          grep -qx 'BR2_PACKAGE_ANDROID_TOOLS_ADBD=y' stage3-output/.config
+          make -C stage3-buildroot O="$GITHUB_WORKSPACE/stage3-output" -j2
+          mkdir stage3-inspect stage3-out
+          tar -xf stage3-output/images/rootfs.tar -C stage3-inspect
+          test -x stage3-inspect/usr/bin/adbd
+          file stage3-inspect/usr/bin/adbd | tee stage3-out/adbd-elf.txt
+          grep -q 'ELF 32-bit.*ARM' stage3-out/adbd-elf.txt
+          cp stage3-output/images/rootfs.cpio.gz stage3-out/rootfs.cpio.gz
+          sha256sum stage3-out/rootfs.cpio.gz > stage3-out/SHA256SUMS
+          printf '%s\n' \
+            'ARM32 adbd binary exists. Actual USB gadget, FunctionFS, permissions and authentication are NOT tested.' \
+            'NOT BOOTABLE OR FLASHABLE: no kernel, power driver stack or verified USB gadget.' \
+            > stage3-out/README-FIRST.txt
+      - name: Upload diagnostics, even if build fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage3-adbd-build-log
+          path: |
+            stage3-out/adbd-elf.txt
+            stage3-out/README-FIRST.txt
+          retention-days: 30
+          if-no-files-found: ignore
+      - name: Upload adbd rootfs only after verification
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage3-adbd-rootfs-NOT-BOOTABLE
+          path: stage3-out/
+          retention-days: 30
+          if-no-files-found: error

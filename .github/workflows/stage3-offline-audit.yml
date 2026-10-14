@@ -1,0 +1,49 @@
+name: Stage 3 - Offline boot audit (no device, no rebuild)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage3-offline-audit.yml'
+      - 'scripts/stage3-audit.py'
+      - 'docs/STAGE3.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pinned passing Stage 2 image (read-only)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage3-original
+          gh run download 38520538421 \
+            --repo "$GH_REPO" \
+            --name aurora-stage2-boot-UNVERIFIED-DO-NOT-FLASH \
+            --dir stage3-original
+          ls -lah stage3-original/
+      - name: Verify hashes, image ABI, and missing hardware requirements
+        run: |
+          set -euo pipefail
+          python3 scripts/stage3-audit.py \
+            --artifact-dir stage3-original --output-dir stage3-report \
+            | tee stage3-audit.log
+          cat stage3-report/README.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload audit report only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage3-offline-audit-NOT-BOOT-READY
+          path: |
+            stage3-report/
+            stage3-audit.log
+          retention-days: 30
+          if-no-files-found: warn
