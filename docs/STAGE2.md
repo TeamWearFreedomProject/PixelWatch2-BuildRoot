@@ -25,6 +25,14 @@ Open the workflow [Stage 2 - Kernel and built-in initramfs](../.github/workflows
 
 A successful workflow establishes **only build and basic image format**. It does not prove USB logs, display, charger safety, a working shell, DTB compatibility, AVB acceptance, `fastboot boot` support, or bootability. Never infer those from a green CI run.
 
+## Stage 2 first-run failure & targeted experiment
+
+[Run #38503278603](https://github.com/TeamWearFreedomProject/PixelWatch2-BuildRoot/actions/runs/38503278603) successfully built ARM32/musl rootfs and reached the ARM64 kernel compiler, then failed in `drivers/soc/qcom/sps/bam.c` on `P_HALT_P_LAST_DESC_ZLT` and `P_HALT_P_PIPE_EMPTY`.
+
+The argosphil kernel config has `# CONFIG_SPS_SUPPORT_NDP_BAM is not set`. The affected status bits are NDP-specific; the kernel source's two query blocks reference them without a guard. The CI-only workaround in `scripts/patch_bam_ndp.py` puts **exactly those two status queries** under `#ifdef CONFIG_SPS_SUPPORT_NDP_BAM`, leaving their existing conservative `return false` path in place on non-NDP builds. It does **not** define hardware bits, force-enable NDP, turn off the entire SPS driver, or modify an upstream repository. It fails if the source shape or config differs.
+
+**IMPORTANT:** This is a scoped hypothesis intended to keep compilation moving, not an established fix for the real BAM hardware or an endorsement for booting this kernel. Test the next CI run and inspect the next error or image verification failure before any device use.
+
 ## Images & firmware
 
 - `boot.img`: produced *only if* kernel compilation and format checks succeed; **research-only**.

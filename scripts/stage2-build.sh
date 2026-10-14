@@ -55,6 +55,10 @@ grep -Fqx "CONFIG_INITRAMFS_SOURCE=\"$ROOTFS\"" "$KO/.config"
 grep -qx 'CONFIG_ARM64=y' "$KO/.config"
 grep -qx 'CONFIG_COMPAT=y' "$KO/.config"
 
+echo "=== Stage 2: guard unsupported BAM NDP-only status checks ==="
+python3 "$ROOT/scripts/patch_bam_ndp.py" \
+  "$KS/drivers/soc/qcom/sps/bam.c" "$KO/.config"
+
 echo "=== Stage 2: compile ARM64 Image (uncompressed) ==="
 make "${COMMON[@]}" -j2 Image
 IMAGE="$KO/arch/arm64/boot/Image"

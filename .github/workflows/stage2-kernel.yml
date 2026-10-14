@@ -6,6 +6,7 @@ on:
       - '.github/workflows/stage2-kernel.yml'
       - 'scripts/stage2-build.sh'
       - 'scripts/verify_bootimg.py'
+      - 'scripts/patch_bam_ndp.py'
       - 'board/**'
       - 'configs/**'
       - 'docs/STAGE2.md'
