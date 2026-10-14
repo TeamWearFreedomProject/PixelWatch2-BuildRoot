@@ -1,0 +1,70 @@
+name: Stage 6 - Google BMS and Qualcomm power modules (research)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage6-power-modules.yml'
+      - 'stage6/**'
+      - 'docs/STAGE6.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  external-power-modules:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    steps:
+      - name: Checkout experimental research source
+        uses: actions/checkout@v4
+      - name: Install kernel cross-compiler dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y build-essential bc bison cpio curl file flex \
+            git gzip libelf-dev libncurses-dev libssl-dev lz4 make patch perl \
+            python3 rsync sed tar unzip wget xz-utils \
+            gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu dwarves
+      - name: Download exact successful Stage 5 research rootfs and kernel config
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage6-input
+          gh run download 38564131552 \
+            --repo "$GH_REPO" \
+            --name aurora-stage5-USB-SERIAL-DO-NOT-BOOT \
+            --dir stage6-input
+          (cd stage6-input && sha256sum --check SHA256SUMS)
+      - name: Preflight existing kernel patches
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/stage2-preflight.sh 2>&1 | tee stage6-preflight.log
+      - name: Compile matching Google BMS/gvotable and Qualcomm power modules
+        shell: bash
+        run: |
+          set -o pipefail
+          bash stage6/build-power-modules.sh 2>&1 | tee stage6-build.log
+      - name: Upload power build diagnostics even when failing
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage6-power-module-logs
+          path: |
+            stage6-preflight.log
+            stage6-build.log
+            stage6-artifacts/*-built.txt
+            stage6-artifacts/PROVENANCE.txt
+          retention-days: 30
+          if-no-files-found: ignore
+      - name: Upload offline experimental modules if all builds pass
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage6-POWER-EXPERIMENT-DO-NOT-LOAD
+          path: stage6-artifacts/
+          retention-days: 30
+          if-no-files-found: error
