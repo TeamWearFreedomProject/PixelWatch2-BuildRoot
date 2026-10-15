@@ -1,0 +1,67 @@
+name: Stage 8 - Offline watch boot-readiness audit (NO DEVICE)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage8-readiness.yml'
+      - 'stage8/**'
+      - 'docs/STAGE8.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  static-audit-not-boot-approval:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Stage 8 audit code
+        uses: actions/checkout@v4
+
+      - name: Check local Python audit source
+        run: |
+          set -euo pipefail
+          python3 -m py_compile stage8/audit.py
+
+      - name: Retrieve pinned Stage 7 passing artifact (research only)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage8-input
+          gh run download 38721433935 \
+            --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT \
+            --dir stage8-input
+          (cd stage8-input && sha256sum -c SHA256SUMS)
+
+      - name: Audit boot header, power modules, initramfs and unresolved risks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 stage8/audit.py \
+            --input stage8-input \
+            --output stage8-artifacts/readiness-report.json \
+            2>&1 | tee stage8-audit.log
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('stage8-artifacts/readiness-report.json').read_text())
+          assert r['format_and_static_integrity']=='PASS'
+          assert r['physical_boot_authorization']=='BLOCKED'
+          print('OFFLINE FORMATS VERIFIED. PHYSICAL BOOT NOT AUTHORIZED.')
+          PY
+
+      - name: Upload audit log and boot safety blockers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage8-OFFLINE-AUDIT-BOOT-BLOCKED
+          path: |
+            stage8-audit.log
+            stage8-artifacts/readiness-report.json
+          if-no-files-found: ignore
+          retention-days: 30
