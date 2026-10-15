@@ -12,10 +12,22 @@ mkdir -p "$OUT"
 
 # Build Stage 6's matching untrimmed kernel, Module.symvers and all seven .ko.
 bash "$ROOT/stage6/build-power-modules.sh"
-KREL="$(make -s -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- kernelrelease)"
+# The make kernelrelease query can disagree with the release embedded by
+# Kbuild when LOCALVERSION_AUTO and a modified source tree interact.
+# The actual kernel and external modules carry include/generated/utsrelease.h.
+# Never rewrite vermagic to force a match: verify against the compiled header.
+UTS_HEADER="$KO/include/generated/utsrelease.h"
+test -s "$UTS_HEADER" || { echo "Missing compiled UTS release header"; exit 1; }
+KREL="$(sed -n 's/^#define UTS_RELEASE "\\(.*\\)"$/\\1/p' "$UTS_HEADER")"
 [[ "$KREL" =~ ^[A-Za-z0-9._+-]+$ ]] || {
-  echo "Invalid kernel release: $KREL"; exit 1;
+  echo "Invalid compiled kernel UTS_RELEASE: $KREL"; exit 1;
 }
+QUERY_RELEASE="$(make -s -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- kernelrelease)"
+echo "Compiled UTS_RELEASE: $KREL"
+echo "Dynamic make kernelrelease: $QUERY_RELEASE"
+if [[ "$QUERY_RELEASE" != "$KREL" ]]; then
+  echo "Note: dynamic release query differs from compiled kernel; verifying actual module vermagic against compiled UTS_RELEASE."
+fi
 test -s "$KO/Module.symvers"
 test -s "$KO/arch/arm64/boot/Image"
 (cd "$MODS" && sha256sum -c SHA256SUMS)
@@ -50,6 +62,7 @@ test -f "$DEPMOD_DIR/modules.dep"
 OLD_CONFIG="$(sha256sum "$KO/.config" | cut -d' ' -f1)"
 OLD_SYMVERS="$(sha256sum "$KO/Module.symvers" | cut -d' ' -f1)"
 OLD_IMAGE="$(sha256sum "$KO/arch/arm64/boot/Image" | cut -d' ' -f1)"
+OLD_UTS="$(sha256sum "$UTS_HEADER" | cut -d' ' -f1)"
 
 python3 "$ROOT/stage7/pack_modules.py" \
   --input "$INPUT/rootfs.cpio.gz" \
@@ -66,6 +79,10 @@ cmp "$OUT/rootfs.cpio.gz" "$ROOT/stage2-artifacts/rootfs.cpio.gz"
 NEW_CONFIG="$(sha256sum "$KO/.config" | cut -d' ' -f1)"
 NEW_SYMVERS="$(sha256sum "$KO/Module.symvers" | cut -d' ' -f1)"
 NEW_IMAGE="$(sha256sum "$KO/arch/arm64/boot/Image" | cut -d' ' -f1)"
+NEW_UTS="$(sha256sum "$UTS_HEADER" | cut -d' ' -f1)"
+[[ "$OLD_UTS" == "$NEW_UTS" ]] || {
+  echo 'Compiled kernel UTS_RELEASE changed after module compilation'; exit 1;
+}
 [[ "$OLD_CONFIG" == "$NEW_CONFIG" ]] || {
   echo 'Kernel configuration changed after compiling modules'; exit 1;
 }
@@ -85,7 +102,7 @@ cp "$KO/Module.symvers" "$OUT/Module.symvers"
 cp "$MODS/PROVENANCE.txt" "$OUT/POWER-SOURCE-PINS.txt"
 cat > "$OUT/README-FIRST-DO-NOT-BOOT.txt" <<'EOF'
 STAGE 7 RESEARCH BOOT IMAGE. DO NOT BOOT, FLASH OR LOAD MODULES.
-ARM64 kernel + 7 Google BMS/Qualcomm .ko share a single Stage 6 ABI.
+ARM64 kernel + 8 Google BMS/Qualcomm .ko share a single Stage 6 ABI.
 Modules are stored in ARM32 initramfs, but NOT autoloaded.
 Power/charger/thermal/device-tree/firmware/USB behavior is NOT verified.
 The QUSB SCM helper is experimental. Watch hardware was NEVER tested.
@@ -98,7 +115,7 @@ Stage 5 rootfs input: GitHub run 38564131552
 Kernel source: $(git -C "$KS" rev-parse HEAD)
 Kernel release: $KREL
 CONFIG_MODVERSIONS=y; CONFIG_TRIM_UNUSED_KSYMS=n; CONFIG_SOUND=n
-Power modules: rebuilt with matching kernel by Stage 6 in same CI job
+Power modules: all 8 rebuilt with matching kernel by Stage 6 in same CI job
 Power module autoload: NO
 Physical watch tested: NO
 Flashable: NO

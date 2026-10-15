@@ -9,7 +9,7 @@ import stat
 
 REQUIRED = {'gvotable.ko', 'logbuffer.ko', 'qpnp-smblite-main.ko',
             'google-bms.ko', 'google-battery.ko', 'google-charger.ko',
-            'sw5100_bms.ko'}
+            'sw5100_bms.ko', 'qti-qbg-main.ko'}
 
 def pad4(n):
     return (n + 3) & ~3
@@ -103,7 +103,7 @@ def main():
         raise ValueError('Stage 5 serial getty absent')
     modules = sorted(args.modules.glob('*.ko'))
     if {f.name for f in modules} != REQUIRED:
-        raise ValueError(f'expecting exactly seven power .ko, found {[f.name for f in modules]}')
+        raise ValueError(f'expecting exactly eight power .ko, found {[f.name for f in modules]}')
     if 'lib' in reg and stat.S_ISLNK(reg['lib'][1][1]):
         target = reg['lib'][3].decode().removeprefix('./').lstrip('/')
         if target != 'usr/lib':

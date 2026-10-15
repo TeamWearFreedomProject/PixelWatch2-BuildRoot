@@ -22,8 +22,12 @@ def main():
                 raise ValueError('Conflicting CRC for export '+name)
             exports[name]=crc
     modules=sorted(a.module_dir.glob('*.ko'))
-    if len(modules)!=7:
-        raise ValueError('Expected 7 power modules for Stage 7')
+    expected={'gvotable.ko','logbuffer.ko','qpnp-smblite-main.ko',
+              'qti-qbg-main.ko','google-bms.ko','google-battery.ko',
+              'google-charger.ko','sw5100_bms.ko'}
+    if {m.name for m in modules} != expected:
+        raise ValueError('Expected exactly 8 known power modules; got '
+                         +str([m.name for m in modules]))
     report={}
     errors=[]
     for module in modules:

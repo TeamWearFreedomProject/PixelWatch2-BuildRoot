@@ -1,4 +1,4 @@
-# Stage 7 — ABI-coherent ARM64 Linux + seven *stored* power modules
+# Stage 7 — ABI-coherent ARM64 Linux + eight *stored* power modules
 
 **Research build only — DO NOT BOOT, FLASH, SIDELOAD OR LOAD MODULES on a Pixel Watch 2.**
 
@@ -9,16 +9,17 @@ kernel symbols. Its modules are **not interchangeable** with the earlier
 Stage 5 boot image (which had a different kernel configuration). Simply
 copying Stage 6 .ko files onto Stage 5 does not create an ABI-correct system.
 
-Stage 7 compiles the untrimmed Stage 6 kernel and the seven modules **in the
+Stage 7 compiles the untrimmed Stage 6 kernel and the eight modules **in the
 same CI job**, then repackages a new Android header-v4 boot.img whose built-in
 ARM32 Buildroot initramfs contains those same .ko files. This is not a
 boot-safe release: it is a structure and build consistency experiment.
 
-## The seven modules
+## The eight modules
 
 - gvotable.ko
 - logbuffer.ko
 - qpnp-smblite-main.ko
+- qti-qbg-main.ko
 - google-bms.ko
 - google-battery.ko
 - google-charger.ko
@@ -32,17 +33,18 @@ kernel/rootfs sources. It does not flash, erase or interact with a watch.
 
 1. A short Python-only test verifies the newc CPIO packer before any lengthy
    kernel compilation.
-2. Stage 6 regenerates Image, Module.symvers and all seven modules against the
+2. Stage 6 regenerates Image, Module.symvers and all eight modules against the
    same exact source/config; existing build failures abort.
 3. Verify all SHA256SUMS, CONFIG_MODVERSIONS=y, CONFIG_SOUND=n and
    CONFIG_TRIM_UNUSED_KSYMS=n.
-4. Verify each .ko has matching kernel vermagic. Check imported CRCs using
+4. Verify each .ko's vermagic against compiled include/generated/utsrelease.h
+   (not a potentially divergent dynamic kernelrelease query). Check imported CRCs using
    modprobe --dump-modversions against the exact kernel and external
    Module.symvers.
 5. Use host depmod to generate modules.dep and related metadata in a
    disposable folder. The CPIO packer preserves the Stage 5 ARM32 rootfs and
    correctly handles /lib → /usr/lib if the rootfs uses usrmerge.
-6. Store all seven AArch64 modules, plus metadata, inside the built-in
+6. Store all eight AArch64 modules, plus metadata, inside the built-in
    initramfs. **No init.d service, modules-load.d file, or modprobe call is
    added to load the modules at boot.**
 7. Rebuild ARM64 Image with this new initramfs; verify the kernel configuration

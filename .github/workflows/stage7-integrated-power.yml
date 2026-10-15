@@ -57,7 +57,7 @@ jobs:
           set -o pipefail
           bash scripts/stage2-preflight.sh 2>&1 | tee stage7-preflight.log
 
-      - name: Rebuild Stage 6 ABI and integrate seven modules into research boot.img
+      - name: Rebuild Stage 6 ABI and integrate eight modules into research boot.img
         shell: bash
         run: |
           set -o pipefail
