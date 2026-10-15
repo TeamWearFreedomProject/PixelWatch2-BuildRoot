@@ -29,11 +29,20 @@ for k in ARM64 MODULES MODVERSIONS COMPAT; do
     }
 done
 grep -Fxq '# CONFIG_SOUND is not set' "$KO/.config"
-echo "=== Build kernel Module.symvers with identical Stage 5 rootfs/config ==="
+echo "=== Build kernel and module symbol versions with identical Stage 5 rootfs/config ==="
 make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2 Image
-test -s "$KO/Module.symvers" || {
-    echo 'Missing kernel Module.symvers'; exit 1;
+# Building Image/vmlinux alone may only emit vmlinux.symvers, which contains
+# symbols exported by vmlinux but is NOT the final kernel Module.symvers.
+# With CONFIG_MODVERSIONS=y, kernel 5.15 requires the full 'modules' target
+# to run modpost and generate Module.symvers for external module ABI checks.
+test -s "$KO/vmlinux.symvers" || {
+    echo 'Missing vmlinux.symvers after Image; inspect the kernel build'; exit 1;
 }
+make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2 modules
+test -s "$KO/Module.symvers" || {
+    echo 'Missing final Module.symvers after make modules'; exit 1;
+}
+echo "Kernel exported symbols: $(wc -l < "$KO/Module.symvers")"
 make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_prepare
 
 echo '=== Fetch Google BMS/gvotable and companion SOC modules ==='
