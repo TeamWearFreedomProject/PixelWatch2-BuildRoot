@@ -1,0 +1,86 @@
+name: Stage 7 - ABI-matched kernel and power initramfs (DO NOT BOOT)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage7-integrated-power.yml'
+      - 'stage7/**'
+      - 'docs/STAGE7.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  stage7:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 240
+    steps:
+      - name: Checkout isolated Stage 7 research
+        uses: actions/checkout@v4
+
+      - name: Very-fast local CPIO/command preflight
+        run: |
+          set -euo pipefail
+          python3 -m py_compile stage7/pack_modules.py stage7/validate_abi.py
+          python3 -m unittest discover -s stage7 -p 'test_*.py' -v
+          bash -n stage7/build-stage7.sh
+          bash -n stage6/build-power-modules.sh
+
+      - name: Install cross-compiler and offline module inspection tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            build-essential bc bison cpio curl file flex git gzip \
+            libelf-dev libncurses-dev libssl-dev lz4 make patch perl \
+            python3 rsync sed tar unzip wget xz-utils \
+            gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu dwarves \
+            kmod
+
+      - name: Download pinned successful Stage 5 rootfs, config and provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage6-input
+          gh run download 38564131552 \
+            --repo "$GH_REPO" \
+            --name aurora-stage5-USB-SERIAL-DO-NOT-BOOT \
+            --dir stage6-input
+          (cd stage6-input && sha256sum --check SHA256SUMS)
+
+      - name: Preflight known EOS kernel compilation blockers
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/stage2-preflight.sh 2>&1 | tee stage7-preflight.log
+
+      - name: Rebuild Stage 6 ABI and integrate seven modules into research boot.img
+        shell: bash
+        run: |
+          set -o pipefail
+          bash stage7/build-stage7.sh 2>&1 | tee stage7-build.log
+
+      - name: Upload diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage7-integrity-logs
+          path: |
+            stage7-preflight.log
+            stage7-build.log
+            stage7-artifacts/abi-report.json
+            stage7-artifacts/integration-report.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload offline ABI-coherent boot image (NEVER BOOT OR FLASH)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT
+          path: stage7-artifacts/
+          retention-days: 30
+          if-no-files-found: error
