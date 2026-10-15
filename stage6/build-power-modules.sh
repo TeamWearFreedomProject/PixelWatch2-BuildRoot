@@ -29,7 +29,21 @@ for k in ARM64 MODULES MODVERSIONS COMPAT; do
     }
 done
 grep -Fxq '# CONFIG_SOUND is not set' "$KO/.config"
-echo "=== Build kernel and module symbol versions with identical Stage 5 rootfs/config ==="
+
+# Stage 5 enables TRIM_UNUSED_KSYMS, which prunes externally needed symbols
+# such as single_open, seq_printf and vfree. Its tiny Module.symvers (76
+# exports in the failing run) cannot link standalone Google BMS modules.
+# Stage 6 is therefore a *separate offline module-capable research profile*.
+# This explicitly changes the ABI/export set; none of its .ko files can be
+# claimed compatible with the existing Stage 5 boot.img.
+"$KS/scripts/config" --file "$KO/.config" -d TRIM_UNUSED_KSYMS
+make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+grep -Fxq '# CONFIG_TRIM_UNUSED_KSYMS is not set' "$KO/.config" || {
+    echo 'Cannot disable export trimming; aborting external module build'
+    exit 1
+}
+echo 'Stage 6 OFFLINE-ONLY ABI profile: TRIM_UNUSED_KSYMS disabled; NOT compatible with Stage 5 boot.img'
+echo "=== Build kernel and module symbol versions with Stage 5 source/rootfs and Stage 6 expanded export config ==="
 make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2 Image
 # Building Image/vmlinux alone may only emit vmlinux.symvers, which contains
 # symbols exported by vmlinux but is NOT the final kernel Module.symvers.
@@ -43,6 +57,15 @@ test -s "$KO/Module.symvers" || {
     echo 'Missing final Module.symvers after make modules'; exit 1;
 }
 echo "Kernel exported symbols: $(wc -l < "$KO/Module.symvers")"
+# These are baseline exports needed by Google's logbuffer module; checking
+# before fetching/vendor builds avoids another opaque late modpost failure.
+for sym in single_open single_release seq_printf vfree seq_read misc_register; do
+    if ! awk -v wanted="$sym" '$2 == wanted {found=1; exit} END {exit !found}' "$KO/Module.symvers"; then
+        echo "ERROR: missing required kernel symbol $sym even after disabling TRIM_UNUSED_KSYMS"
+        exit 1
+    fi
+done
+echo "Baseline Google logbuffer kernel exports are present."
 make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_prepare
 
 echo '=== Fetch Google BMS/gvotable and companion SOC modules ==='
