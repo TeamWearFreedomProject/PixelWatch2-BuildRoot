@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Stage 6 OFFLINE CI ONLY. Never load modules, boot or flash the watch.
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+WORK="$ROOT/stage2-work"
+KS="$WORK/kernel"
+KO="$WORK/kernel-out"
+IN="$ROOT/stage6-input"
+OUT="$ROOT/stage6-artifacts"
+BMS="$WORK/google-modules/bms"
+SOC="$WORK/google-modules/soc/msm"
+mkdir -p "$OUT" "$WORK/br-output/images" "$WORK/google-modules/soc"
+
+(cd "$IN" && sha256sum -c SHA256SUMS)
+test -s "$IN/kernel.config"
+test -s "$IN/rootfs.cpio.gz"
+test -s "$IN/SOURCES.txt"
+PIN="$(awk '/^Kernel commit:/{print $3; exit}' "$IN/SOURCES.txt")"
+[[ "$PIN" =~ ^[0-9a-f]{40}$ ]] || { echo "Missing Stage 5 kernel revision"; exit 1; }
+test "$(git -C "$KS" rev-parse HEAD)" = "$PIN" || {
+    echo "Kernel source mismatch: cannot produce matching module ABI"; exit 1;
+}
+cp "$IN/kernel.config" "$KO/.config"
+cp "$IN/rootfs.cpio.gz" "$WORK/br-output/images/rootfs.cpio.gz"
+make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+for k in ARM64 MODULES MODVERSIONS COMPAT; do
+    grep -Fxq "CONFIG_$k=y" "$KO/.config" || {
+        echo "Missing expected kernel option CONFIG_$k"; exit 1;
+    }
+done
+grep -Fxq '# CONFIG_SOUND is not set' "$KO/.config"
+
+# Stage 5 enables TRIM_UNUSED_KSYMS, which prunes externally needed symbols
+# such as single_open, seq_printf and vfree. Its tiny Module.symvers (76
+# exports in the failing run) cannot link standalone Google BMS modules.
+# Stage 6 is therefore a *separate offline module-capable research profile*.
+# This explicitly changes the ABI/export set; none of its .ko files can be
+# claimed compatible with the existing Stage 5 boot.img.
+"$KS/scripts/config" --file "$KO/.config" -d TRIM_UNUSED_KSYMS
+make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+grep -Fxq '# CONFIG_TRIM_UNUSED_KSYMS is not set' "$KO/.config" || {
+    echo 'Cannot disable export trimming; aborting external module build'
+    exit 1
+}
+echo 'Stage 6 OFFLINE-ONLY ABI profile: TRIM_UNUSED_KSYMS disabled; NOT compatible with Stage 5 boot.img'
+echo "=== Build kernel and module symbol versions with Stage 5 source/rootfs and Stage 6 expanded export config ==="
+make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2 Image
+# Building Image/vmlinux alone may only emit vmlinux.symvers, which contains
+# symbols exported by vmlinux but is NOT the final kernel Module.symvers.
+# With CONFIG_MODVERSIONS=y, kernel 5.15 requires the full 'modules' target
+# to run modpost and generate Module.symvers for external module ABI checks.
+test -s "$KO/vmlinux.symvers" || {
+    echo 'Missing vmlinux.symvers after Image; inspect the kernel build'; exit 1;
+}
+make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2 modules
+test -s "$KO/Module.symvers" || {
+    echo 'Missing final Module.symvers after make modules'; exit 1;
+}
+echo "Kernel exported symbols: $(wc -l < "$KO/Module.symvers")"
+# These are baseline exports needed by Google's logbuffer module; checking
+# before fetching/vendor builds avoids another opaque late modpost failure.
+for sym in single_open single_release seq_printf vfree seq_read misc_register; do
+    if ! awk -v wanted="$sym" '$2 == wanted {found=1; exit} END {exit !found}' "$KO/Module.symvers"; then
+        echo "ERROR: missing required kernel symbol $sym even after disabling TRIM_UNUSED_KSYMS"
+        exit 1
+    fi
+done
+echo "Baseline Google logbuffer kernel exports are present."
+make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_prepare
+
+echo '=== Fetch Google BMS/gvotable and companion SOC modules ==='
+mkdir -p "$BMS" "$SOC"
+git -C "$BMS" init
+git -C "$BMS" remote add origin https://android.googlesource.com/kernel/google-modules/bms
+git -C "$BMS" fetch --depth 1 origin 51583026f264e7597808a16aa6809fb9279eb8c4
+git -C "$BMS" checkout --detach FETCH_HEAD
+git -C "$SOC" init
+git -C "$SOC" remote add origin https://android.googlesource.com/kernel/google-modules/soc/msm
+git -C "$SOC" fetch --depth 1 origin 7a2cd1649e49373ca24bd81d4fe89e7440db4ab5
+git -C "$SOC" checkout --detach FETCH_HEAD
+test -f "$SOC/Makefile.include" || {
+    echo "Google SOC MSM Makefile.include missing"; exit 1;
+}
+EXTRA=""
+build_group() {
+    label="$1"
+    path="$2"
+    shift 2
+    echo "=== External module build: $label ==="
+    make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- \
+        -j2 M="$path" KERNEL_SRC="$KS" OUT_DIR="$KS" \
+        KBUILD_EXTRA_SYMBOLS="$EXTRA" "$@" modules
+    test -s "$path/Module.symvers" || {
+        echo "Missing Module.symvers from $label"; exit 1;
+    }
+    find "$path" -name '*.ko' -type f -print | tee "$OUT/$label-built.txt"
+    test -s "$OUT/$label-built.txt" || {
+        echo "No kernel module generated for $label"; exit 1;
+    }
+    EXTRA="$EXTRA $path/Module.symvers"
+}
+# sw5100_bms.ko imports Qualcomm/legacy PMIC-voter symbols (vote,
+# find_votable, create_votable, get_effective_result). Stage 6's previous
+# ordering (google-bms before qcom-power) fails at modpost. The matching
+# Google BMS Bazel dependency graph references qcom_battery_modules;
+# build the provider candidate BEFORE its dependent rather than hiding
+# undefined symbols with KBUILD_MODPOST_WARN.
+echo "=== Source-level audit of PMIC-voter providers (diagnostic) ==="
+grep -R -n -E 'EXPORT_SYMBOL(_GPL)?\((create_votable|find_votable|vote|get_effective_result)\)' \
+    "$BMS" "$KS/drivers/power/supply/qcom" | head -50 || true
+build_group gvotable "$BMS/misc" \
+    CONFIG_GOOGLE_VOTABLE=m CONFIG_GOOGLE_LOGBUFFER=m
+build_group qcom-power "$KS/drivers/power/supply/qcom" \
+    CONFIG_QPNP_SMBLITE=m CONFIG_QTI_QBG=m
+# Fail fast with a specific message if the Qualcomm group was not the voter
+# provider. Do not claim success or suppress unresolved module symbols.
+for sym in create_votable find_votable vote get_effective_result; do
+    if ! awk -v wanted="$sym" '$2 == wanted {found=1; exit} END {exit !found}' \
+        "$KO/Module.symvers" \
+        "$BMS/misc/Module.symvers" \
+        "$KS/drivers/power/supply/qcom/Module.symvers"; then
+        echo "STOP: missing PMIC-voter provider symbol $sym; inspect source dependency graph"
+        exit 1
+    fi
+done
+echo 'Required PMIC-voter symbol exports found in source-level module output.'
+build_group google-bms "$BMS" \
+    CONFIG_GOOGLE_BMS=m CONFIG_GOOGLE_BATTERY=m \
+    CONFIG_GOOGLE_CHARGER=m CONFIG_GOOGLE_BMS_SW5100=m
+{
+    echo "Kernel: $PIN"
+    echo "BMS: $(git -C "$BMS" rev-parse HEAD)"
+    echo "Google SOC/MSM: $(git -C "$SOC" rev-parse HEAD)"
+    echo 'Build-only experimental power drivers: NEVER LOAD ON WATCH'
+} > "$OUT/PROVENANCE.txt"
+find "$BMS" "$KS/drivers/power/supply/qcom" -name '*.ko' \
+    -exec cp -v '{}' "$OUT/" ';'
+(cd "$OUT" && sha256sum ./*.ko > SHA256SUMS)
+echo 'Compiled experimental modules; charging safety NOT verified.'
