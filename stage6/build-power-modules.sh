@@ -99,13 +99,34 @@ build_group() {
     }
     EXTRA="$EXTRA $path/Module.symvers"
 }
+# sw5100_bms.ko imports Qualcomm/legacy PMIC-voter symbols (vote,
+# find_votable, create_votable, get_effective_result). Stage 6's previous
+# ordering (google-bms before qcom-power) fails at modpost. The matching
+# Google BMS Bazel dependency graph references qcom_battery_modules;
+# build the provider candidate BEFORE its dependent rather than hiding
+# undefined symbols with KBUILD_MODPOST_WARN.
+echo "=== Source-level audit of PMIC-voter providers (diagnostic) ==="
+grep -R -n -E 'EXPORT_SYMBOL(_GPL)?\((create_votable|find_votable|vote|get_effective_result)\)' \
+    "$BMS" "$KS/drivers/power/supply/qcom" | head -50 || true
 build_group gvotable "$BMS/misc" \
     CONFIG_GOOGLE_VOTABLE=m CONFIG_GOOGLE_LOGBUFFER=m
+build_group qcom-power "$KS/drivers/power/supply/qcom" \
+    CONFIG_QPNP_SMBLITE=m CONFIG_QTI_QBG=m
+# Fail fast with a specific message if the Qualcomm group was not the voter
+# provider. Do not claim success or suppress unresolved module symbols.
+for sym in create_votable find_votable vote get_effective_result; do
+    if ! awk -v wanted="$sym" '$2 == wanted {found=1; exit} END {exit !found}' \
+        "$KO/Module.symvers" \
+        "$BMS/misc/Module.symvers" \
+        "$KS/drivers/power/supply/qcom/Module.symvers"; then
+        echo "STOP: missing PMIC-voter provider symbol $sym; inspect source dependency graph"
+        exit 1
+    fi
+done
+echo 'Required PMIC-voter symbol exports found in source-level module output.'
 build_group google-bms "$BMS" \
     CONFIG_GOOGLE_BMS=m CONFIG_GOOGLE_BATTERY=m \
     CONFIG_GOOGLE_CHARGER=m CONFIG_GOOGLE_BMS_SW5100=m
-build_group qcom-power "$KS/drivers/power/supply/qcom" \
-    CONFIG_QPNP_SMBLITE=m CONFIG_QTI_QBG=m
 {
     echo "Kernel: $PIN"
     echo "BMS: $(git -C "$BMS" rev-parse HEAD)"
