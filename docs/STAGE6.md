@@ -15,10 +15,19 @@ kernel configuration deliberately differs**: CONFIG_TRIM_UNUSED_KSYMS
 is disabled so external modules can see normally exported kernel symbols.
 These modules are NOT ABI-compatible with Stage 5 boot.img as built.
 
-Build dependency order:
+Experimental strict build order (under verification):
 1. Google BMS misc (gvotable and logbuffer)
-2. Google BMS (battery / charger / sw5100)
-3. External Qualcomm power supply (qpnp-smblite and qbg)
+2. External Qualcomm power supply (qpnp-smblite and qbg), to try
+   resolving PMIC voter providers required by the next group
+3. Google BMS (battery / charger / sw5100)
+
+The previous order (Google BMS before Qualcomm power) failed at modpost:
+sw5100_bms.ko was missing create_votable, find_votable, vote and
+get_effective_result. The Google BMS Bazel dependency graph refers to
+qcom_battery_modules. Stage 6 now tries building the Qualcomm group
+first and **verifies its symbol exports** before compiling Google BMS.
+This is a hypothesis under CI test, not proof that modules are compatible.
+Do not use KBUILD_MODPOST_WARN=1 to disguise missing symbols.
 
 The selected BMS commit is 51583026f264e7597808a16aa6809fb9279eb8c4.
 The soc/msm companion commit is 7a2cd1649e49373ca24bd81d4fe89e7440db4ab5.
