@@ -18,7 +18,7 @@ bash "$ROOT/stage6/build-power-modules.sh"
 # Never rewrite vermagic to force a match: verify against the compiled header.
 UTS_HEADER="$KO/include/generated/utsrelease.h"
 test -s "$UTS_HEADER" || { echo "Missing compiled UTS release header"; exit 1; }
-KREL="$(sed -n 's/^#define UTS_RELEASE "\\(.*\\)"$/\\1/p' "$UTS_HEADER")"
+KREL="$(awk -F '"' '/^#define UTS_RELEASE "/ {print $2}' "$UTS_HEADER")"
 [[ "$KREL" =~ ^[A-Za-z0-9._+-]+$ ]] || {
   echo "Invalid compiled kernel UTS_RELEASE: $KREL"; exit 1;
 }
