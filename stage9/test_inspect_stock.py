@@ -34,7 +34,7 @@ def make_vendor(dtb):
     struct.pack_into("<I",header,24,0)
     struct.pack_into("<II",header,2096,2128,len(dtb))
     struct.pack_into("<4I",header,2112,0,0,0,0)
-    return bytes(header)+b"\0"*(4096-len(header))+dtb
+    return bytes(header)+b"\0"*(4096-len(header))+dtb+b"\0"*((-len(dtb))%4096)
 
 def make_dtbo(dtb):
     header=struct.pack(">8I",p.DT_TABLE_MAGIC,64+len(dtb),32,32,1,32,4096,0)
