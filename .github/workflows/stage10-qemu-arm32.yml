@@ -1,0 +1,129 @@
+name: Stage 10 - ARM32 BusyBox QEMU userspace smoke (NO WATCH)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage10-qemu-arm32.yml'
+      - 'stage10/**'
+      - 'docs/STAGE10.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  arm32-qemu-smoke:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout isolated offline Stage 10 branch
+        uses: actions/checkout@v4
+
+      - name: Install 32-bit ARM QEMU interpreter and archive tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends qemu-user-static cpio file binutils
+
+      - name: Download passing Stage 7 research image (no device)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage10-input
+          gh run download 38721433935 \
+            --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT \
+            --dir stage10-input
+          (cd stage10-input && sha256sum -c SHA256SUMS)
+
+      - name: Offline initramfs format and rootfs inventory checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 stage10/inventory_rootfs.py \
+            --artifact stage10-input \
+            --output stage10-artifacts/rootfs-inventory.json
+
+      - name: Extract isolated CI rootfs and inspect ARM32 dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage10-sysroot stage10-artifacts
+          # This is a disposable runner directory, never a device partition.
+          (
+            cd stage10-sysroot
+            gzip -dc ../stage10-input/rootfs.cpio.gz | sudo cpio \
+              --extract --make-directories --no-absolute-filenames --quiet
+          )
+          echo '=== Target architecture ==='
+          file stage10-sysroot/bin/busybox stage10-sysroot/usr/bin/adbd \
+            | tee stage10-artifacts/elf-architecture.txt
+          echo '=== Target ELF interpreters ==='
+          readelf -l stage10-sysroot/bin/busybox \
+            | tee stage10-artifacts/busybox-program-headers.txt
+          readelf -l stage10-sysroot/usr/bin/adbd \
+            | tee stage10-artifacts/adbd-program-headers.txt
+          echo '=== Target shared library dependencies ==='
+          readelf -d stage10-sysroot/bin/busybox \
+            | tee stage10-artifacts/busybox-dynamic.txt
+          readelf -d stage10-sysroot/usr/bin/adbd \
+            | tee stage10-artifacts/adbd-dynamic.txt
+          echo '=== USB serial startup script syntax ==='
+          sh -n stage10-sysroot/usr/sbin/aurora-acm
+          sh -n stage10-sysroot/etc/init.d/S90aurora-acm
+
+      - name: Launch actual ARM32 BusyBox shell under QEMU user mode
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x "$(command -v qemu-arm-static)"
+          sudo cp "$(command -v qemu-arm-static)" stage10-sysroot/usr/bin/qemu-arm-static
+          set +e
+          timeout 20s sudo chroot stage10-sysroot \
+            /usr/bin/qemu-arm-static /bin/busybox sh -c \
+            'printf "QEMU_ARM32_SHELL_OK\n"; /bin/busybox test -e /etc/inittab; /bin/busybox test -e /usr/bin/adbd; /bin/busybox test -e /usr/sbin/aurora-acm' \
+            > stage10-artifacts/qemu-shell-stdout.txt \
+            2> stage10-artifacts/qemu-shell-stderr.txt
+          result=$?
+          set -e
+          cat stage10-artifacts/qemu-shell-stdout.txt
+          cat stage10-artifacts/qemu-shell-stderr.txt >&2
+          test "$result" -eq 0 || {
+            echo "QEMU ARM32 execution failed with exit $result"
+            exit 1
+          }
+          grep -Fxq "QEMU_ARM32_SHELL_OK" stage10-artifacts/qemu-shell-stdout.txt
+          echo "ARM32 user-space shell executed under QEMU. WATCH HARDWARE NOT TESTED."
+
+      - name: Write clear result boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path('stage10-artifacts')
+          report={
+            "test":"qemu-arm-static executing ARM32 BusyBox shell in throwaway chroot",
+            "qemu_userspace_shell":"PASS",
+            "adbd_execution":"NOT TESTED",
+            "android_boot_image_booted":False,
+            "arm64_eos_kernel_executed":False,
+            "usb_udc_or_phy_emulated":False,
+            "battery_charging_or_thermal_controls_tested":False,
+            "hardware_boot_authorization":"BLOCKED"
+          }
+          (p/'test-summary.json').write_text(json.dumps(report,indent=2)+'\n')
+          PY
+
+      - name: Upload offline QEMU shell diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage10-QEMU-ARM32-USERSPACE-ONLY
+          path: stage10-artifacts/
+          if-no-files-found: ignore
+          retention-days: 30
