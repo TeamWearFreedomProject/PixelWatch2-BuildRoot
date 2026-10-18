@@ -1,0 +1,82 @@
+name: Stage 9 - stock firmware format and evidence audit (NO DEVICE)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage9-stock-evidence.yml'
+      - 'stage9/**'
+      - 'docs/STAGE9.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  stage9-format-only:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Stage 9 audit scripts
+        uses: actions/checkout@v4
+
+      - name: Validate parser with synthetic DTB/vendor_boot/DTBO images
+        run: |
+          set -euo pipefail
+          python3 -m py_compile stage9/inspect_stock.py stage9/test_inspect_stock.py
+          python3 -m unittest discover -s stage9 -p 'test_*.py' -v
+
+      - name: Fetch immutable successful Stage 8 report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage9-stage8
+          gh run download 38725685644 \
+            --repo "$GH_REPO" \
+            --name aurora-stage8-OFFLINE-AUDIT-BOOT-BLOCKED \
+            --dir stage9-stage8
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          files=list(Path('stage9-stage8').rglob('readiness-report.json'))
+          if len(files)!=1:
+              raise SystemExit('Missing/ambiguous Stage 8 readiness report')
+          r=json.loads(files[0].read_text())
+          if r.get('format_and_static_integrity')!='PASS':
+              raise SystemExit('Stage 8 did not prove its limited format checks')
+          if r.get('physical_boot_authorization')!='BLOCKED':
+              raise SystemExit('Stage 8 claimed unsafe boot authorization')
+          Path('stage9-artifacts').mkdir(exist_ok=True)
+          Path('stage9-artifacts/prior-stage8-report.json').write_text(
+              json.dumps(r,indent=2)+'\n')
+          print('Stage 8 format PASS; actual boot remains BLOCKED')
+          PY
+
+      - name: Run Stage 9 stock-evidence audit without private hardware inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 stage9/inspect_stock.py \
+            --output stage9-artifacts/stock-evidence-report.json \
+            2>&1 | tee stage9-audit.log
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          r=json.loads(Path('stage9-artifacts/stock-evidence-report.json').read_text())
+          assert r['stock_format_inspection']=='INCOMPLETE'
+          assert r['physical_fastboot_boot_authorization']=='BLOCKED'
+          print('PASS: research parser validated; real device evidence still required')
+          PY
+
+      - name: Publish no-device audit results only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage9-READONLY-RESEARCH-BOOT-BLOCKED
+          path: |
+            stage9-audit.log
+            stage9-artifacts/
+          if-no-files-found: ignore
+          retention-days: 30
