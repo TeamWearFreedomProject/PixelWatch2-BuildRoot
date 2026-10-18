@@ -88,7 +88,7 @@ def fdt_summary(data):
 
 
 def parse_vendor_boot(data):
-    if len(data) < 2128 or data[:8] != VENDOR_MAGIC:
+    if len(data) < 2112 or data[:8] != VENDOR_MAGIC:
         raise ValueError("not a supported vendor_boot image")
     version, page = struct.unpack_from("<2I", data, 8)
     if version not in (3, 4) or page < 512 or page > 65536 or page & (page - 1):
@@ -96,7 +96,7 @@ def parse_vendor_boot(data):
     vendor_ramdisk_size = struct.unpack_from("<I", data, 24)[0]
     hdr_size, dtb_size = struct.unpack_from("<2I", data, 2096)
     expected_header = 2112 if version == 3 else 2128
-    if hdr_size != expected_header or dtb_size == 0:
+    if hdr_size != expected_header or len(data) < expected_header:
         raise ValueError("unexpected vendor_boot header size or empty DTB")
     dtb_offset = align(hdr_size, page) + align(vendor_ramdisk_size, page)
     if dtb_offset + dtb_size > len(data):
@@ -110,13 +110,14 @@ def parse_vendor_boot(data):
         summary = fdt_summary(blob[pos:])
         trees.append(summary)
         pos += summary["bytes"]
-    if not trees:
-        raise ValueError("no raw FDT found in vendor_boot DTB section")
+    if pos != len(blob):
+        raise ValueError("trailing malformed or non-FDT bytes in vendor DTB section")
     out = {"sha256":digest(data), "bytes":len(data),
            "header_version":version, "page_size":page,
            "vendor_ramdisk_bytes":vendor_ramdisk_size,
            "dtb_bytes":dtb_size, "dtb_sha256":digest(blob),
-           "dtbs":trees, "dtbs_parsed":len(trees)}
+           "dtbs":trees, "dtbs_parsed":len(trees),
+           "dtb_absent":dtb_size == 0}
     if version == 4:
         table_size, count, entry_size, bc_size = struct.unpack_from("<4I", data, 2112)
         table_start = dtb_offset + align(dtb_size, page)
@@ -168,13 +169,18 @@ def device_evidence(path):
     return result
 
 
-def report(vendor=None, dtbo=None, evidence=None):
+def report(vendor=None, dtbo=None, evidence=None, vendor_kernel=None):
     findings = {}
     blockers = []
     if vendor is not None:
         findings["stock_vendor_boot"] = parse_vendor_boot(vendor)
     else:
         blockers.append("Matching stock vendor_boot.img not supplied")
+    if vendor_kernel is not None:
+        findings["stock_vendor_kernel_boot"] = parse_vendor_boot(vendor_kernel)
+    if vendor is not None and findings["stock_vendor_boot"]["dtb_absent"]:
+        if vendor_kernel is None or findings["stock_vendor_kernel_boot"]["dtb_absent"]:
+            blockers.append("Base DTB absent in vendor_boot: supply matching vendor_kernel_boot with DTBs")
     if dtbo is not None:
         findings["stock_dtbo"] = parse_dtbo(dtbo)
     else:
@@ -195,7 +201,7 @@ def report(vendor=None, dtbo=None, evidence=None):
     ]
     return {
         "stage":9, "audit_type":"OFFLINE_READ_ONLY",
-        "stock_format_inspection": "COMPLETE" if vendor is not None and dtbo is not None else "INCOMPLETE",
+        "stock_format_inspection": "COMPLETE" if vendor is not None and dtbo is not None and not any("Base DTB absent" in b for b in blockers) else "INCOMPLETE",
         "physical_fastboot_boot_authorization":"BLOCKED",
         "findings":findings, "unresolved_blockers":blockers,
         "note":"Vendor boot and DTBO formats/compatible strings cannot prove kernel or hardware compatibility."
@@ -206,6 +212,7 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--vendor-boot", type=pathlib.Path)
     ap.add_argument("--dtbo", type=pathlib.Path)
+    ap.add_argument("--vendor-kernel-boot", type=pathlib.Path)
     ap.add_argument("--device-evidence", type=pathlib.Path)
     ap.add_argument("--output", type=pathlib.Path, required=True)
     args=ap.parse_args()
@@ -213,6 +220,7 @@ def main():
         args.vendor_boot.read_bytes() if args.vendor_boot else None,
         args.dtbo.read_bytes() if args.dtbo else None,
         device_evidence(args.device_evidence) if args.device_evidence else None,
+        args.vendor_kernel_boot.read_bytes() if args.vendor_kernel_boot else None,
     )
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(r,indent=2,ensure_ascii=False)+"\n")
