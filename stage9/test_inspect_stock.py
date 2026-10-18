@@ -61,6 +61,22 @@ class StockAuditTests(unittest.TestCase):
         self.assertEqual(r["physical_fastboot_boot_authorization"],"BLOCKED")
         self.assertTrue(r["unresolved_blockers"])
 
+    def test_zero_vendor_dtb_and_two_vendor_kernel_dtbs(self):
+        fdt=make_fdt()
+        empty_vendor=make_vendor(b"")
+        kernel_vendor=make_vendor(fdt+fdt)
+        parsed=p.parse_vendor_boot(empty_vendor)
+        self.assertEqual(parsed["dtbs_parsed"],0)
+        self.assertTrue(parsed["dtb_absent"])
+        self.assertEqual(p.parse_vendor_boot(kernel_vendor)["dtbs_parsed"],2)
+        info={"product":"aurora","current-slot":"b","unlocked":"yes",
+              "version-bootloader":"synthetic-eos"}
+        incomplete=p.report(empty_vendor,make_dtbo(fdt),info)
+        self.assertEqual(incomplete["stock_format_inspection"],"INCOMPLETE")
+        complete=p.report(empty_vendor,make_dtbo(fdt),info,kernel_vendor)
+        self.assertEqual(complete["stock_format_inspection"],"COMPLETE")
+        self.assertEqual(complete["physical_fastboot_boot_authorization"],"BLOCKED")
+
     def test_missing_inputs_always_blocked(self):
         r=p.report()
         self.assertEqual(r["stock_format_inspection"],"INCOMPLETE")
