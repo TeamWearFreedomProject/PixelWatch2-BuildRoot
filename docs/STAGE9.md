@@ -10,7 +10,7 @@ demonstrated safe PMIC, thermal management or USB enumeration on hardware.
 
 Stage 9 builds two read-only analysis paths:
 - The Python tool in stage9/inspect_stock.py inspects existing OEM
-  vendor_boot.img (header versions 3/4, DTBs, vendor ramdisk bounds) and
+  vendor_boot.img and vendor_kernel_boot.img (header versions 3/4, possible empty DTB sections, concatenated base DTBs, vendor ramdisk bounds) and
   dtbo.img (Android device-tree table, entries, FDT properties, checksums).
   It never writes or modifies an image or accesses a device.
 - The Windows PowerShell tool in stage9/collect-readonly-fastboot.ps1
@@ -33,7 +33,7 @@ Do not try this if the hardware is unstable or overheating.
 With trustworthy stock images for the EXACT firmware build you have,
 which were obtained without modifying or flashing the watch, use:
 
-    python stage9/inspect_stock.py --vendor-boot vendor_boot.img --dtbo dtbo.img --device-evidence aurora-fastboot-evidence.json --output stock-format-report.json
+    python stage9/inspect_stock.py --vendor-boot vendor_boot.img --vendor-kernel-boot vendor_kernel_boot.img --dtbo dtbo.img --device-evidence aurora-fastboot-evidence.json --output stock-format-report.json
 
 You may omit any optional input; the report records those fields as
 missing, and physical boot permission remains BLOCKED in all cases.
@@ -68,3 +68,10 @@ Sources:
 https://source.android.com/docs/core/architecture/bootloader/boot-image-header
 https://source.android.com/docs/core/architecture/partitions/vendor-boot-partitions
 https://source.android.com/docs/core/architecture/dto/partitions
+
+## OEM Aurora TWD9 research correction
+On some authentic Aurora factory firmware packages vendor_boot carries no
+base DTB. The base DTBs are instead in vendor_kernel_boot. Stage 9 explicitly
+accepts this layout and keeps compatibility/physical boot BLOCKED until a
+matching vendor_kernel_boot is supplied. Synthetic fixture tests cover both
+zero DTBs and concatenated DTBs; no OEM images are committed to GitHub.
