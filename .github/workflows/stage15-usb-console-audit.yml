@@ -1,0 +1,58 @@
+name: Stage 15 - ARM32 USB gadget startup and console audit (NO WATCH)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage15-usb-console-audit.yml'
+      - 'stage15/**'
+      - 'docs/STAGE15.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  usb-acm-static-audit:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test USB gadget inspection assumptions
+        run: |
+          set -euo pipefail
+          python3 -m py_compile stage15/audit_usb_startup.py stage15/test_audit_usb_startup.py
+          python3 -m unittest discover -s stage15 -p 'test_*.py' -v
+      - name: Download pinned Stage 7 rootfs and verify hashes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage15-input
+          gh run download 38721433935 --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT --dir stage15-input
+          (cd stage15-input && sha256sum -c SHA256SUMS)
+      - name: Inspect actual BusyBox startup gadget and login path offline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 stage15/audit_usb_startup.py \
+            --stage7-artifact stage15-input \
+            --output stage15-artifacts/usb-acm-safety.json 2>&1 | tee stage15-usb.log
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('stage15-artifacts/usb-acm-safety.json').read_text())
+          assert d['stage']==15 and d['static_usb_audit']=='PASS'
+          assert d['gadget_script_would_be_invoked_on_boot'] is True
+          assert d['physical_fastboot_boot_authorization']=='BLOCKED'
+          assert d['boot_kernel_or_gadget_executed'] is False
+          PY
+      - name: Publish static USB findings only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage15-USB-GADGET-STARTUP-BOOT-BLOCKED
+          path: |
+            stage15-usb.log
+            stage15-artifacts/usb-acm-safety.json
+          retention-days: 30
+          if-no-files-found: ignore
