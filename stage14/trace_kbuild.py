@@ -46,7 +46,7 @@ def trace_file(file, root, config):
             continue
         visited.add(obj)
         for kind, conf, unconditional, name, members, filename, line in items:
-            record = {"kind":kind, "rule_file":str(pathlib.Path(filename).relative_to(root)),
+            record = {"kind":kind, "rule_file":str(pathlib.Path(filename).relative_to(root.resolve())),
                       "line":line, "object":obj}
             if kind == "obj" and obj in members:
                 ckey = (conf or "")
@@ -64,7 +64,7 @@ def trace_file(file, root, config):
              else "POSSIBLE_MODULE_LINK" if "m" in statuses
              else "DISABLED_OR_NONLINKED_RULE" if found
              else "BUILD_GRAPH_UNRESOLVED")
-    return {"source":str(file.relative_to(root)), "object":source_obj,
+    return {"source":str(file.relative_to(root.resolve())), "object":source_obj,
             "build_evidence":label, "traces":found,
             "limitation":"Only local Makefile/Kbuild links are traced. Ancestor directory gates, generated objects and external M= builds may differ."}
 
