@@ -1,0 +1,95 @@
+{
+  "source_description": "Metadata selectively transcribed from user-provided Pixel Watch 2 aurora TWD9.240405.001 vendor_kernel_boot ramdisk modules.dep and modules.load*; proprietary OEM binaries are not included.",
+  "oem_image_sha256": "d7de39258a894ea00358559c131150a9006901803c61819b455e5550ba23e892",
+  "stock_module_count": 96,
+  "stock_load_count": {
+    "normal": 76,
+    "charger": 87,
+    "recovery": 96
+  },
+  "power_modules": [
+    "gvotable.ko",
+    "logbuffer.ko",
+    "qpnp-smblite-main.ko",
+    "qti-qbg-main.ko",
+    "google-bms.ko",
+    "google-battery.ko",
+    "google-charger.ko",
+    "sw5100_bms.ko"
+  ],
+  "stock_direct_module_deps": {
+    "gvotable.ko": [],
+    "logbuffer.ko": [],
+    "qpnp-smblite-main.ko": [
+      "gvotable.ko"
+    ],
+    "qti-qbg-main.ko": [],
+    "google-bms.ko": [
+      "logbuffer.ko"
+    ],
+    "google-battery.ko": [
+      "google-bms.ko",
+      "logbuffer.ko",
+      "gvotable.ko"
+    ],
+    "google-charger.ko": [
+      "google-bms.ko",
+      "logbuffer.ko",
+      "gvotable.ko"
+    ],
+    "sw5100_bms.ko": [
+      "qpnp-smblite-main.ko",
+      "google-bms.ko",
+      "logbuffer.ko",
+      "gvotable.ko"
+    ]
+  },
+  "power_position_zero_based": {
+    "normal": [],
+    "charger": [
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85
+    ],
+    "recovery": [
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93
+    ]
+  },
+  "stock_recovery_usb": {
+    "dwc3-msm.ko": [
+      "qcom_ipc_logging.ko",
+      "clk-qcom.ko",
+      "gdsc-regulator.ko",
+      "debug-regulator.ko",
+      "proxy-consumer.ko"
+    ],
+    "phy-msm-snps-hs.ko": [
+      "qcom-scm.ko"
+    ],
+    "phy-generic.ko": [],
+    "google-extcon-usb-shim.ko": [],
+    "eud.ko": [
+      "qcom-scm.ko"
+    ]
+  },
+  "stock_recovery_usb_position_zero_based": {
+    "dwc3-msm.ko": 55,
+    "phy-msm-snps-hs.ko": 54,
+    "phy-generic.ko": 53,
+    "google-extcon-usb-shim.ko": 85,
+    "eud.ko": 24
+  },
+  "non_boot_test": true
+}
