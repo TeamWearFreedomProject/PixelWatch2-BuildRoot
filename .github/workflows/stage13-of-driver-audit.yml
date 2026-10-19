@@ -1,0 +1,127 @@
+name: Stage 13 - Real EOS C driver OF tables and Kbuild audit (NO WATCH)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage13-of-driver-audit.yml'
+      - 'stage13/**'
+      - 'docs/STAGE13.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  of-driver-source-audit:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 75
+    steps:
+      - name: Checkout audit source
+        uses: actions/checkout@v4
+
+      - name: Check source scanner on synthetic fixtures first
+        run: |
+          set -euo pipefail
+          python3 -m py_compile stage13/audit_of_matches.py stage13/test_audit_of_matches.py
+          python3 -m unittest discover -s stage13 -p 'test_*.py' -v
+
+      - name: Download successful Stage 7 ABI-coherent kernel metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage13-stage7-input
+          gh run download 38721433935 \
+            --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT \
+            --dir stage13-stage7-input
+          (cd stage13-stage7-input && sha256sum -c SHA256SUMS)
+
+      - name: Derive exact upstream Git commits from Stage 7 recorded sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, re
+          sources=Path('stage13-stage7-input/SOURCES.txt').read_text()
+          power=Path('stage13-stage7-input/POWER-SOURCE-PINS.txt').read_text()
+          def pin(content,label):
+              m=re.search(r'^'+re.escape(label)+r'\s*([0-9a-f]{40})\s*$',
+                          content,re.M)
+              if m is None:
+                  raise SystemExit('Source pin missing or ambiguous: '+label)
+              return m.group(1)
+          pins={'kernel':pin(sources,'Kernel source:'),
+                'bms':pin(power,'BMS:'),
+                'soc':pin(power,'Google SOC/MSM:')}
+          if pin(power,'Kernel:')!=pins['kernel']:
+              raise SystemExit('Stage 7 kernel/source power build pin mismatch')
+          Path('stage13-artifacts').mkdir(exist_ok=True)
+          Path('stage13-artifacts/source-revisions.json').write_text(
+              json.dumps(pins,indent=2)+'\n')
+          print('Kernel source SHA:',pins['kernel'])
+          print('External BMS SHA:',pins['bms'])
+          print('External SOC SHA:',pins['soc'])
+          PY
+
+      - name: Download exactly pinned public kernel and external driver sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage13-source
+          python3 - <<'PY' > stage13-source/targets.tsv
+          import json
+          p=json.load(open('stage13-artifacts/source-revisions.json'))
+          for name,url in (
+            ('kernel','https://android.googlesource.com/kernel/msm'),
+            ('bms','https://android.googlesource.com/kernel/google-modules/bms'),
+            ('soc','https://android.googlesource.com/kernel/google-modules/soc/msm'),
+          ):
+              print(name,url,p[name],sep='\t')
+          PY
+          while IFS="$(printf '\t')" read -r name url sha; do
+            echo "Fetching $name revision $sha (source-only; no compilation)"
+            git init -q "stage13-source/$name"
+            git -C "stage13-source/$name" remote add origin "$url"
+            git -C "stage13-source/$name" fetch -q --depth 1 origin "$sha"
+            git -C "stage13-source/$name" checkout -q --detach FETCH_HEAD
+            test "$(git -C "stage13-source/$name" rev-parse HEAD)" = "$sha"
+          done < stage13-source/targets.tsv
+
+      - name: Inspect actual upstream of_device_id tables and direct Kbuild rules
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 stage13/audit_of_matches.py \
+            --metadata stage12/twd9-dtb-derived.json \
+            --kernel-config stage13-stage7-input/kernel.config \
+            --kernel-source stage13-source/kernel \
+            --bms-source stage13-source/bms \
+            --soc-source stage13-source/soc \
+            --revisions stage13-artifacts/source-revisions.json \
+            --output stage13-artifacts/eos-source-of-match-report.json \
+            2>&1 | tee stage13-audit.log
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('stage13-artifacts/eos-source-of-match-report.json').read_text())
+          assert r['static_scan_completed'] is True
+          assert r['physical_fastboot_boot_authorization']=='BLOCKED'
+          assert r['hardware_runtime_verified'] is False
+          assert len(r['nodes'])==16
+          print('Verified source-table audit, not a physical driver binding test.')
+          PY
+
+      - name: Upload source-level diagnostic report only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage13-OF-SOURCE-TABLE-AUDIT-DO-NOT-BOOT
+          path: |
+            stage13-audit.log
+            stage13-artifacts/
+          retention-days: 30
+          if-no-files-found: ignore
