@@ -21,7 +21,7 @@ cp "$KO/.config" "$OUT/baseline-kernel.config"
 grep -R -E '^[[:space:]]*config QCOM_SPMI_TEMP_ALARM$' "$KS/drivers/thermal" | tee "$OUT/kconfig-location.txt"
 grep -R -F 'CONFIG_QCOM_SPMI_TEMP_ALARM' "$KS/drivers/thermal/Makefile" "$KS/drivers/thermal/qcom/Makefile" | tee "$OUT/kbuild-rule.txt"
 grep -q 'qcom-spmi-temp-alarm.o' "$OUT/kbuild-rule.txt"
-test -f "$KS/drivers/thermal/qcom-spmi-temp-alarm.c"
+test -f "$KS/drivers/thermal/qcom/qcom-spmi-temp-alarm.c"
 grep -Fxq '# CONFIG_QCOM_SPMI_TEMP_ALARM is not set' "$KO/.config"
 "$KS/scripts/config" --file "$KO/.config" -e QCOM_SPMI_TEMP_ALARM
 make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
@@ -30,8 +30,8 @@ grep -Fxq 'CONFIG_QCOM_SPMI_TEMP_ALARM=y' "$KO/.config"
 for flag in 'CONFIG_ARM64=y' 'CONFIG_THERMAL=y' 'CONFIG_SPMI=y' 'CONFIG_REGMAP_SPMI=y' '# CONFIG_SOUND is not set' '# CONFIG_TRIM_UNUSED_KSYMS is not set'; do
   grep -Fxq "$flag" "$KO/.config" || { echo "Unexpected kernel config: $flag"; exit 1; }
 done
-make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2 drivers/thermal/qcom-spmi-temp-alarm.o
-OBJ="$KO/drivers/thermal/qcom-spmi-temp-alarm.o"
+make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2 drivers/thermal/qcom/qcom-spmi-temp-alarm.o
+OBJ="$KO/drivers/thermal/qcom/qcom-spmi-temp-alarm.o"
 test -s "$OBJ"
 python3 "$ROOT/stage17/report_compile.py" --baseline "$OUT/baseline-kernel.config" --variant "$OUT/thermal-research.config" --object "$OBJ" --kernel-source "$KS" --output "$OUT/thermal-object-evidence.json"
 echo "Stage 17: AArch64 thermal alarm object compiled offline; hardware NOT tested."
