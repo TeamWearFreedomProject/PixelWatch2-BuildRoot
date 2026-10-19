@@ -1,0 +1,1744 @@
+{
+  "stage": 18,
+  "method": "local_hash_verified_OEM_extraction_and_libfdt_overlay_application",
+  "input_sha256": {
+    "vendor_kernel_boot": "d7de39258a894ea00358559c131150a9006901803c61819b455e5550ba23e892",
+    "dtbo": "cd00526c4abed67d5c06d879792562415357afd26316d33784fe5eae05abe48c"
+  },
+  "overlay_tool_version": "Version: DTC 1.8.1-g8871d686",
+  "base_dtbs": [
+    {
+      "index": 0,
+      "graph_sha256": "507c22450661a214e4bc30a0f1af17699ea359c2a75f3290c48cab5f70881ec6"
+    },
+    {
+      "index": 1,
+      "graph_sha256": "3b085c971cad7367d3c33b1b871dc166975958993470c0f4dca1a36c58ba51cc"
+    }
+  ],
+  "candidate_combinations": [
+    {
+      "base_index": 0,
+      "overlay_index": 0,
+      "board_id": "0x20504",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "6477d8acd10009ddbab59571b393170bda5d819aaedb81d720ad60f035200b9a"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 1,
+      "board_id": "0x20503",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "8508e76d44bacf197680154b7406ba909ff68a20b6a2a782370c86128460e0ff"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 2,
+      "board_id": "0x20503",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "6477d8acd10009ddbab59571b393170bda5d819aaedb81d720ad60f035200b9a"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 3,
+      "board_id": "0x20502",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "70b552b62d67bc6ae95b0f1db9bf9255572585d13034b16ca2d9eb4b9d414895"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 4,
+      "board_id": "0x20505",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "6477d8acd10009ddbab59571b393170bda5d819aaedb81d720ad60f035200b9a"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 5,
+      "board_id": "0x20404",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "6477d8acd10009ddbab59571b393170bda5d819aaedb81d720ad60f035200b9a"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 6,
+      "board_id": "0x20403",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "8508e76d44bacf197680154b7406ba909ff68a20b6a2a782370c86128460e0ff"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 7,
+      "board_id": "0x20403",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "6477d8acd10009ddbab59571b393170bda5d819aaedb81d720ad60f035200b9a"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 8,
+      "board_id": "0x20401",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "d97bcfa8bea50c2d488fd45d52dd64e8a127caf66d42e76cebbb505036b12d38"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 9,
+      "board_id": "0x20402",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "70b552b62d67bc6ae95b0f1db9bf9255572585d13034b16ca2d9eb4b9d414895"
+    },
+    {
+      "base_index": 0,
+      "overlay_index": 10,
+      "board_id": "0x20405",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "6477d8acd10009ddbab59571b393170bda5d819aaedb81d720ad60f035200b9a"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 0,
+      "board_id": "0x20504",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "fc55ab65dee489341ea5a7dc99e7e59f81ce8e0bb03359f0c74224c330c9d83b"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 1,
+      "board_id": "0x20503",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "3f5980ec9083d9dd3af2c0fc83e328893474b87828f755d03c05f6881f3ef0dc"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 2,
+      "board_id": "0x20503",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "fc55ab65dee489341ea5a7dc99e7e59f81ce8e0bb03359f0c74224c330c9d83b"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 3,
+      "board_id": "0x20502",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "c53f7a6d446eb4eed9513ccaf16b27e27acba467cb77b38848482a231352d909"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 4,
+      "board_id": "0x20505",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "fc55ab65dee489341ea5a7dc99e7e59f81ce8e0bb03359f0c74224c330c9d83b"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 5,
+      "board_id": "0x20404",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "fc55ab65dee489341ea5a7dc99e7e59f81ce8e0bb03359f0c74224c330c9d83b"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 6,
+      "board_id": "0x20403",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "3f5980ec9083d9dd3af2c0fc83e328893474b87828f755d03c05f6881f3ef0dc"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 7,
+      "board_id": "0x20403",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "fc55ab65dee489341ea5a7dc99e7e59f81ce8e0bb03359f0c74224c330c9d83b"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 8,
+      "board_id": "0x20401",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "458199a1916f3c5e621bb6e0cb0c3ef25c63e1ad7c8339438811dfed7ff8aa65"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 9,
+      "board_id": "0x20402",
+      "revision": "0x20000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "c53f7a6d446eb4eed9513ccaf16b27e27acba467cb77b38848482a231352d909"
+    },
+    {
+      "base_index": 1,
+      "overlay_index": 10,
+      "board_id": "0x20405",
+      "revision": "0x10000",
+      "selected_on_watch": "UNKNOWN",
+      "merge": "SUCCEEDED_OFFLINE",
+      "graph_sha256": "fc55ab65dee489341ea5a7dc99e7e59f81ce8e0bb03359f0c74224c330c9d83b"
+    }
+  ],
+  "graphs": {
+    "507c22450661a214e4bc30a0f1af17699ea359c2a75f3290c48cab5f70881ec6": {
+      "dtb_sha256": "507c22450661a214e4bc30a0f1af17699ea359c2a75f3290c48cab5f70881ec6",
+      "root_compatible": [
+        "qcom,monacop"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monacop"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    },
+    "6477d8acd10009ddbab59571b393170bda5d819aaedb81d720ad60f035200b9a": {
+      "dtb_sha256": "6477d8acd10009ddbab59571b393170bda5d819aaedb81d720ad60f035200b9a",
+      "root_compatible": [
+        "qcom,monacop"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monacop"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    },
+    "8508e76d44bacf197680154b7406ba909ff68a20b6a2a782370c86128460e0ff": {
+      "dtb_sha256": "8508e76d44bacf197680154b7406ba909ff68a20b6a2a782370c86128460e0ff",
+      "root_compatible": [
+        "qcom,monacop"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monacop"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    },
+    "70b552b62d67bc6ae95b0f1db9bf9255572585d13034b16ca2d9eb4b9d414895": {
+      "dtb_sha256": "70b552b62d67bc6ae95b0f1db9bf9255572585d13034b16ca2d9eb4b9d414895",
+      "root_compatible": [
+        "qcom,monacop"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monacop"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    },
+    "d97bcfa8bea50c2d488fd45d52dd64e8a127caf66d42e76cebbb505036b12d38": {
+      "dtb_sha256": "d97bcfa8bea50c2d488fd45d52dd64e8a127caf66d42e76cebbb505036b12d38",
+      "root_compatible": [
+        "qcom,monacop"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monacop"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    },
+    "3b085c971cad7367d3c33b1b871dc166975958993470c0f4dca1a36c58ba51cc": {
+      "dtb_sha256": "3b085c971cad7367d3c33b1b871dc166975958993470c0f4dca1a36c58ba51cc",
+      "root_compatible": [
+        "qcom,monaco"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monaco"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    },
+    "fc55ab65dee489341ea5a7dc99e7e59f81ce8e0bb03359f0c74224c330c9d83b": {
+      "dtb_sha256": "fc55ab65dee489341ea5a7dc99e7e59f81ce8e0bb03359f0c74224c330c9d83b",
+      "root_compatible": [
+        "qcom,monaco"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monaco"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    },
+    "3f5980ec9083d9dd3af2c0fc83e328893474b87828f755d03c05f6881f3ef0dc": {
+      "dtb_sha256": "3f5980ec9083d9dd3af2c0fc83e328893474b87828f755d03c05f6881f3ef0dc",
+      "root_compatible": [
+        "qcom,monaco"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monaco"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    },
+    "c53f7a6d446eb4eed9513ccaf16b27e27acba467cb77b38848482a231352d909": {
+      "dtb_sha256": "c53f7a6d446eb4eed9513ccaf16b27e27acba467cb77b38848482a231352d909",
+      "root_compatible": [
+        "qcom,monaco"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monaco"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    },
+    "458199a1916f3c5e621bb6e0cb0c3ef25c63e1ad7c8339438811dfed7ff8aa65": {
+      "dtb_sha256": "458199a1916f3c5e621bb6e0cb0c3ef25c63e1ad7c8339438811dfed7ff8aa65",
+      "root_compatible": [
+        "qcom,monaco"
+      ],
+      "thermal_alarms": [
+        {
+          "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/qcom,temp-alarm@a00",
+          "compatible": [
+            "qcom,spmi-temp-alarm"
+          ],
+          "declared_status": [],
+          "available_with_ancestors": true,
+          "unavailable_ancestors_including_self": [],
+          "reg_cells": [
+            2560
+          ],
+          "thermal_sensor_cells": [
+            0
+          ],
+          "ancestors": [
+            {
+              "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0",
+              "compatible": [
+                "qcom,spmi-pmic"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc/qcom,spmi@1c40000",
+              "compatible": [
+                "qcom,spmi-pmic-arb"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/soc",
+              "compatible": [
+                "simple-bus"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            },
+            {
+              "path": "/",
+              "compatible": [
+                "qcom,monaco"
+              ],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": []
+            }
+          ],
+          "issues": [],
+          "interrupts": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000",
+                "compatible": [
+                  "qcom,spmi-pmic-arb"
+                ],
+                "declared_status": [],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                0,
+                10,
+                0,
+                3
+              ]
+            }
+          ],
+          "iio_channels": [
+            {
+              "provider": {
+                "path": "/soc/qcom,spmi@1c40000/qcom,pm5100@0/vadc@8000",
+                "compatible": [
+                  "qcom,spmi-adc5-gen3"
+                ],
+                "declared_status": [
+                  "ok"
+                ],
+                "available_with_ancestors": true,
+                "unavailable_ancestors_including_self": []
+              },
+              "args": [
+                3
+              ],
+              "name": "thermal"
+            }
+          ],
+          "thermal_zones": [
+            {
+              "path": "/soc/thermal-zones/pm5100-tz",
+              "compatible": [],
+              "declared_status": [],
+              "available_with_ancestors": true,
+              "unavailable_ancestors_including_self": [],
+              "sensor_args": [],
+              "trips": [
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip0",
+                  "type": [
+                    "passive"
+                  ],
+                  "temperature_mC": [
+                    95000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip1",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    115000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                },
+                {
+                  "path": "/soc/thermal-zones/pm5100-tz/trips/trip2",
+                  "type": [
+                    "critical"
+                  ],
+                  "temperature_mC": [
+                    145000
+                  ],
+                  "hysteresis_mC": [
+                    0
+                  ]
+                }
+              ],
+              "matches_driver_sensor_id_0": true
+            }
+          ],
+          "adc_declaration": "NAMED_THERMAL_IIO_CHANNEL"
+        }
+      ],
+      "runtime_probe": "NOT_TESTED",
+      "battery_temperature_verified": false
+    }
+  },
+  "selected_overlay": "UNKNOWN",
+  "firmware_binaries_published": false,
+  "physical_fastboot_boot_authorization": "BLOCKED"
+}
