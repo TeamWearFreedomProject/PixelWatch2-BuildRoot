@@ -1,0 +1,269 @@
+{
+  "provenance": {
+    "build": "aurora-twd9.240405.001",
+    "method": "Locally parsed the user's OEM vendor_kernel_boot(2).img and dtbo(5).img; only limited compatible/status facts and DTBO board IDs are committed. OEM binary files remain private.",
+    "vendor_kernel_boot_sha256": "d7de39258a894ea00358559c131150a9006901803c61819b455e5550ba23e892",
+    "dtbo_sha256": "cd00526c4abed67d5c06d879792562415357afd26316d33784fe5eae05abe48c"
+  },
+  "stock_base_dtbs": [
+    {
+      "compatible": "qcom,monacop",
+      "bytes": 236537
+    },
+    {
+      "compatible": "qcom,monaco",
+      "bytes": 236485
+    }
+  ],
+  "target_compatibles": [
+    {
+      "category": "watchdog",
+      "compatible": "qcom,msm-watchdog",
+      "base_status": "unspecified",
+      "config_hints": [
+        "QCOM_WDT",
+        "QCOM_WATCHDOG"
+      ]
+    },
+    {
+      "category": "power-bus",
+      "compatible": "qcom,spmi-pmic-arb",
+      "base_status": "unspecified",
+      "config_hints": [
+        "SPMI",
+        "SPMI_MSM_PMIC_ARB",
+        "SPMI_PMIC_ARB"
+      ]
+    },
+    {
+      "category": "power-bus",
+      "compatible": "qcom,spmi-pmic",
+      "base_status": "unspecified",
+      "config_hints": [
+        "SPMI",
+        "REGMAP_SPMI",
+        "MFD_SPMI_PMIC"
+      ]
+    },
+    {
+      "category": "reboot",
+      "compatible": "qcom,qpnp-power-on",
+      "base_status": "unspecified",
+      "config_hints": [
+        "QPNP_POWER_ON",
+        "QCOM_PON"
+      ]
+    },
+    {
+      "category": "charger",
+      "compatible": "qcom,qpnp-pm5100-smblite",
+      "base_status": "okay",
+      "config_hints": [
+        "QPNP_SMBLITE",
+        "QCOM_POWER_SUPPLY"
+      ]
+    },
+    {
+      "category": "fuel-gauge",
+      "compatible": "qcom,qbg",
+      "base_status": "disabled",
+      "config_hints": [
+        "QTI_QBG",
+        "QCOM_POWER_SUPPLY"
+      ]
+    },
+    {
+      "category": "temperature",
+      "compatible": "qcom,spmi-temp-alarm",
+      "base_status": "unspecified",
+      "config_hints": [
+        "QCOM_SPMI_TEMP_ALARM",
+        "QPNP_TEMP_ALARM",
+        "THERMAL"
+      ]
+    },
+    {
+      "category": "temperature",
+      "compatible": "qcom,spmi-adc5-gen3",
+      "base_status": "ok",
+      "config_hints": [
+        "QCOM_SPMI_ADC5",
+        "QCOM_VADC_COMMON"
+      ]
+    },
+    {
+      "category": "usb-controller",
+      "compatible": "qcom,dwc-usb3-msm",
+      "base_status": "unspecified",
+      "config_hints": [
+        "USB_DWC3",
+        "USB_DWC3_MSM",
+        "USB_DWC3_QCOM"
+      ]
+    },
+    {
+      "category": "usb-controller",
+      "compatible": "snps,dwc3",
+      "base_status": "unspecified",
+      "config_hints": [
+        "USB_DWC3",
+        "USB_GADGET"
+      ]
+    },
+    {
+      "category": "usb-phy",
+      "compatible": "qcom,usb-hsphy-snps-femto",
+      "base_status": "unspecified",
+      "config_hints": [
+        "PHY_QCOM_USB_HS",
+        "USB_PHY",
+        "USB_QCOM_HS_PHY",
+        "USB_MSM_OTG"
+      ]
+    },
+    {
+      "category": "usb-phy",
+      "compatible": "usb-nop-xceiv",
+      "base_status": "unspecified",
+      "config_hints": [
+        "NOP_USB_XCEIV",
+        "USB_NOP_XCEIV"
+      ]
+    }
+  ],
+  "overlay_required_compatibles": [
+    "google,battery",
+    "google,charger",
+    "google,extcon-usb-shim",
+    "google,smblite-hvdcp"
+  ],
+  "overlay_entries": [
+    {
+      "index": 0,
+      "board_id": "0x20504",
+      "revision": "0x10000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 1,
+      "board_id": "0x20503",
+      "revision": "0x10000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 2,
+      "board_id": "0x20503",
+      "revision": "0x20000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 3,
+      "board_id": "0x20502",
+      "revision": "0x20000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 4,
+      "board_id": "0x20505",
+      "revision": "0x10000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 5,
+      "board_id": "0x20404",
+      "revision": "0x10000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 6,
+      "board_id": "0x20403",
+      "revision": "0x10000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 7,
+      "board_id": "0x20403",
+      "revision": "0x20000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 8,
+      "board_id": "0x20401",
+      "revision": "0x20000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 9,
+      "board_id": "0x20402",
+      "revision": "0x20000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    },
+    {
+      "index": 10,
+      "board_id": "0x20405",
+      "revision": "0x10000",
+      "found_compatible": [
+        "google,battery",
+        "google,charger",
+        "google,extcon-usb-shim",
+        "google,smblite-hvdcp"
+      ]
+    }
+  ],
+  "notes": [
+    "Both OEM base FDTs declare qcom,qbg status disabled. This does NOT prove the effective merged tree has QBG disabled: overlay choice and applied properties are unknown.",
+    "The user reported slot b but exact overlay board ID selected by firmware is not yet established.",
+    "Stage 7 includes only eight non-autoloading power modules. A compiled config does not prove compatible binding or safe charger/PMIC operation.",
+    "Config candidates here are search hints, NOT established kernel bindings; always mark device binding unknown without reviewing the exact source, merged FDT and runtime."
+  ]
+}
