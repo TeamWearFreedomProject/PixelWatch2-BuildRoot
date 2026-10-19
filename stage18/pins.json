@@ -1,0 +1,12 @@
+{
+  "stage17_run": 39196338067,
+  "stage17_head_sha": "59acdd3263237525d08f65fa0be15491a573b922",
+  "stage17_report_sha256": "c9fa35337e304fb39ecf7c79287e721a7462b80cb92650b18aa615d596136a9e",
+  "kernel_revision": "99c2312e4f131f45993d7f4d741e61d647e7ed10",
+  "files": {
+    "drivers/thermal/qcom/qcom-spmi-temp-alarm.c": "5859e81e1bc34f10bc27dfc2381bf575a9e6aac553175f4b27b328ebb63bb9e6",
+    "drivers/thermal/qcom/Kconfig": "588d7fa6af03b39336283056ec6144f7ef7d3e66ef55fb0d50d2fc6ae8bec23d",
+    "drivers/thermal/Makefile": "83ab8e3cdfd53d1602e4a59b05afe305115e82e4fed2746b0c38a49ca42be5d5",
+    "drivers/thermal/qcom/Makefile": "093e5a7fddc2e90a7a9f6488aa50969d8c13c8e6f09442d8fb5db0df66465629"
+  }
+}

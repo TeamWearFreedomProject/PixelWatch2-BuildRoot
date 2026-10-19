@@ -6,3 +6,9 @@
 *.dtb
 *.dtbo
 *.zip
+
+# Research inputs, private firmware and generated local diagnostics
+/stage18-input/
+/stage18-source/
+/stage18-artifacts/
+__pycache__/

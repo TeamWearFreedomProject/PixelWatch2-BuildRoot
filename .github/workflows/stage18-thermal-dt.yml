@@ -1,0 +1,68 @@
+name: Stage 18 - PMIC thermal probe and OEM DT resources
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage18-thermal-dt.yml'
+      - 'stage18/**'
+      - 'docs/STAGE18.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  thermal-resource-contract:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test FDT resources, interrupt inheritance and provenance
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s stage18 -p 'test_*.py' -v
+      - name: Download exact Stage 17 object and config evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh run download 39196338067 --repo "$GH_REPO" \
+            --name aurora-stage17-TEMP-ALARM-OBJECT-ONLY-NO-BOOT \
+            --dir stage18-input/stage17
+      - name: Match OEM thermal resources to hash-pinned EOS probe source
+        run: |
+          set -euo pipefail
+          python3 stage18/report_contract.py \
+            --oem-graphs stage18/oem-thermal-graphs.json \
+            --metadata stage12/twd9-dtb-derived.json \
+            --pins stage18/pins.json \
+            --source-dir stage18-source/kernel \
+            --stage17-dir stage18-input/stage17/stage17-artifacts \
+            --output stage18-artifacts/thermal-probe-contract.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          r=json.loads(Path('stage18-artifacts/thermal-probe-contract.json').read_text())
+          o=r['oem_extraction']
+          assert o['successful_merges'] == o['candidate_pairs'] == 22
+          assert o['distinct_reduced_thermal_graphs'] == 1
+          assert not any(c['issues'] for c in o['candidates'])
+          assert r['selected_overlay'] == 'UNKNOWN' and r['runtime_probe'] == 'NOT_TESTED'
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('### Stage 18\n\n22 historical local OEM base/overlay merges share one reduced PMIC thermal graph.\n\n')
+              f.write('EOS probe requirements and Stage 17 source/config hashes verified.\n\n')
+              f.write('No private firmware bytes used in CI. Overlay selection and runtime operation remain untested.\n')
+          PY
+      - name: Upload readable source contract and reduced graph
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage18-THERMAL-DT-RESOURCE-REPORT
+          path: |
+            stage18-artifacts/
+            stage18/oem-thermal-graphs.json
+            stage18/pins.json
+          retention-days: 30
+          if-no-files-found: ignore
