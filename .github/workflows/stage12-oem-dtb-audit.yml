@@ -1,0 +1,68 @@
+name: Stage 12 - OEM Monaco FDT versus ARM64 kernel config (NO WATCH)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage12-oem-dtb-audit.yml'
+      - 'stage12/**'
+      - 'docs/STAGE12.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  stock-fdt-versus-stage7-config:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Stage 12 metadata and code
+        uses: actions/checkout@v4
+      - name: Offline synthetic unit tests with no OEM binaries
+        run: |
+          set -euo pipefail
+          python3 -m py_compile stage12/audit_dtb_vs_config.py stage12/test_audit_dtb_vs_config.py
+          python3 -m unittest discover -s stage12 -p 'test_*.py' -v
+      - name: Download exact successful Stage 7 research rootfs and config
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage12-stage7-input
+          gh run download 38721433935 \
+            --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT \
+            --dir stage12-stage7-input
+          (cd stage12-stage7-input && sha256sum -c SHA256SUMS)
+      - name: Check base DTB statuses, all 11 overlays and actual kernel.config
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 stage12/audit_dtb_vs_config.py \
+            --manifest stage12/twd9-dtb-derived.json \
+            --stage7-artifact stage12-stage7-input \
+            --output stage12-artifacts/dtb-driver-readiness.json \
+            2>&1 | tee stage12-audit.log
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('stage12-artifacts/dtb-driver-readiness.json').read_text())
+          assert report['static_manifest_and_config']=='PASS'
+          assert report['overlay_total']==11
+          assert report['overlay_selected_by_this_watch']=='UNKNOWN'
+          assert report['stage7_power_module_autoload'] is False
+          assert report['physical_fastboot_boot_authorization']=='BLOCKED'
+          print('PASS: source-derived static DT audit; no runtime or boot safety claims')
+          PY
+      - name: Upload static audit results without OEM binaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage12-OEM-DTB-KCONFIG-AUDIT-DO-NOT-BOOT
+          path: |
+            stage12-audit.log
+            stage12-artifacts/dtb-driver-readiness.json
+          retention-days: 30
+          if-no-files-found: ignore
