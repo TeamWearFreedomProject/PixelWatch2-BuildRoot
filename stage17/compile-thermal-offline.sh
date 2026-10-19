@@ -15,6 +15,12 @@ git -C "$KS" remote add origin https://android.googlesource.com/kernel/msm
 git -C "$KS" fetch -q --depth 1 origin "$PIN"
 git -C "$KS" checkout -q --detach FETCH_HEAD
 test "$(git -C "$KS" rev-parse HEAD)" = "$PIN"
+# Stage 7's kernel.config embeds this existing initramfs at its
+# original CI path. Restore precisely the SHA256-verified Stage 7 input
+# for the scratch compilation; do not edit its contents.
+mkdir -p "$ROOT/stage2-work/br-output/images"
+cp "$IN/rootfs.cpio.gz" "$ROOT/stage2-work/br-output/images/rootfs.cpio.gz"
+cmp "$IN/rootfs.cpio.gz" "$ROOT/stage2-work/br-output/images/rootfs.cpio.gz"
 cp "$IN/kernel.config" "$KO/.config"
 make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
 cp "$KO/.config" "$OUT/baseline-kernel.config"
