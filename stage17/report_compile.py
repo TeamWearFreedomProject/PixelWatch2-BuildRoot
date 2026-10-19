@@ -47,7 +47,7 @@ def report(baseline, variant, obj, source):
         raise ValueError("Invalid kernel source revision")
     return {
         "stage":17, "scope":"OFFLINE_AARCH64_SINGLE_THERMAL_DRIVER_OBJECT",
-        "source_git_revision":rev, "object_source":"drivers/thermal/qcom-spmi-temp-alarm.c",
+        "source_git_revision":rev, "object_source":"drivers/thermal/qcom/qcom-spmi-temp-alarm.c",
         "object_elf_architecture":"ELF64-little-endian-AArch64",
         "object_bytes":len(data), "object_sha256":hashlib.sha256(data).hexdigest(),
         "baseline_config_sha256":hashlib.sha256(baseline.read_bytes()).hexdigest(),
