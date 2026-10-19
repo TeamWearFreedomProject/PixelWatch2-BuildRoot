@@ -30,10 +30,14 @@ grep -Fxq 'CONFIG_QCOM_SPMI_TEMP_ALARM=y' "$KO/.config"
 for flag in 'CONFIG_ARM64=y' 'CONFIG_THERMAL=y' 'CONFIG_SPMI=y' 'CONFIG_REGMAP_SPMI=y' '# CONFIG_SOUND is not set' '# CONFIG_TRIM_UNUSED_KSYMS is not set'; do
   grep -Fxq "$flag" "$KO/.config" || { echo "Unexpected kernel config: $flag"; exit 1; }
 done
-# Kbuild requires building the subdirectory (not an explicit nested object
-# target) when the parent Makefile gates this directory separately.
-make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2 drivers/thermal/qcom/
+# Kbuild single-object/directory goals are not reliable on this EOS tree.
+# Reuse the Stage 6 proven complete ARM64 Image build path, with the two
+# existing OFFLINE source compile patches, but never package an Android boot.
+python3 "$ROOT/scripts/patch_bam_ndp.py" "$KS/drivers/soc/qcom/sps/bam.c" "$KO/.config"
+python3 "$ROOT/scripts/patch_qusb_scm.py" "$KS"
+make -C "$KS" O="$KO" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2 Image
+test -s "$KO/arch/arm64/boot/Image"
 OBJ="$KO/drivers/thermal/qcom/qcom-spmi-temp-alarm.o"
 test -s "$OBJ"
-python3 "$ROOT/stage17/report_compile.py" --baseline "$OUT/baseline-kernel.config" --variant "$OUT/thermal-research.config" --object "$OBJ" --kernel-source "$KS" --output "$OUT/thermal-object-evidence.json"
+python3 "$ROOT/stage17/report_compile.py" --baseline "$OUT/baseline-kernel.config" --variant "$OUT/thermal-research.config" --object "$OBJ" --kernel-source "$KS" --kernel-image "$KO/arch/arm64/boot/Image" --output "$OUT/thermal-object-evidence.json"
 echo "Stage 17: AArch64 thermal alarm object compiled offline; hardware NOT tested."
