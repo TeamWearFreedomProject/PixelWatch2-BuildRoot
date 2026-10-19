@@ -23,13 +23,16 @@ real-world thermal management or safe battery charging.
    olddefconfig to test whether dependency constraints allow it.
 6. Ensure ARCH=arm64, SPMI, thermal support, SOUND=n and the export
    configuration remain as expected. Fail if the alarm cannot be enabled.
-7. Compile only drivers/thermal/qcom/qcom-spmi-temp-alarm.o with aarch64-linux-gnu
-   GCC. Require a real ELF64 little-endian AArch64 relocatable object.
+7. Build an unmodified-format ARM64 kernel Image in a throwaway CI directory
+   using the same two pre-existing Stage 6 compile compatibility patches.
+   Then verify the resulting qcom-spmi-temp-alarm.o ELF64 AArch64 object.
+   The research Image and object are NOT uploaded or usable as boot.img.
 8. Save the original/research configs and a JSON report of changed config
    options, source pin, ELF hash and limitations. The compiled binary is
    **not included in the published artifacts**.
 
-This deliberately does NOT compile an Android boot image, build the
+This compiles a disposable raw kernel Image (NOT an Android boot.img), but
+it is never published or flashed. It does NOT build the
 eight Google battery modules again, create a bootable image, or change
 power-driver autoload. It does not touch the device.
 
