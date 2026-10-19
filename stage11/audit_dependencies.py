@@ -171,6 +171,11 @@ def main():
         print(name, "match=", entry["exact_filename_dependency_match"],
               "OEM-only=", entry["OEM_only_dependencies"],
               "Stage7-only=", entry["Stage7_only_dependencies"])
+    print("=== Stage 7 kernel config (y=built-in, m=module, n=disabled, unknown=not defined) ===")
+    for key, value in report["kernel_config_selected"].items():
+        print("STAGE7_CONFIG", key, value)
+    print("=== Stock recovery USB modules are not in Stage 7 initramfs ===")
+    print("STAGE7_STORED_USB", report["usb_oem_modules_stored_in_stage7_initramfs"])
     print("Physical fastboot boot:", report["physical_fastboot_boot_authorization"])
 
 
