@@ -1,0 +1,65 @@
+name: Stage 17 - Compile PMIC thermal alarm object (OFFLINE ONLY)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage17-thermal-compile.yml'
+      - 'stage17/**'
+      - 'docs/STAGE17.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  aarch64-thermal-alarm-build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 105
+    steps:
+      - name: Checkout independent Stage 17 research branch
+        uses: actions/checkout@v4
+
+      - name: Fast synthetic tests and shell syntax check
+        run: |
+          set -euo pipefail
+          python3 -m py_compile stage17/report_compile.py stage17/test_report_compile.py
+          python3 -m unittest discover -s stage17 -p 'test_*.py' -v
+          bash -n stage17/compile-thermal-offline.sh
+
+      - name: Install kernel AArch64 build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential bc bison flex libelf-dev libncurses-dev libssl-dev \
+            make patch perl python3 git rsync gcc-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu dwarves
+
+      - name: Download exact passing Stage 7 research config and source pin
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage17-input
+          gh run download 38721433935 --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT \
+            --dir stage17-input
+          (cd stage17-input && sha256sum -c SHA256SUMS)
+
+      - name: Compile real Qualcomm PMIC temp-alarm object with research CONFIG=y
+        shell: bash
+        run: |
+          set -o pipefail
+          bash stage17/compile-thermal-offline.sh 2>&1 | tee stage17-build.log
+
+      - name: Upload readable diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage17-TEMP-ALARM-OBJECT-ONLY-NO-BOOT
+          path: |
+            stage17-build.log
+            stage17-artifacts/
+          retention-days: 30
+          if-no-files-found: ignore
