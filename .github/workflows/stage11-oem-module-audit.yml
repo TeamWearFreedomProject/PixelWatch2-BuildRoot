@@ -1,0 +1,70 @@
+name: Stage 11 - Stock TWD9 versus Stage 7 module graph (NO DEVICE)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage11-oem-module-audit.yml'
+      - 'stage11/**'
+      - 'docs/STAGE11.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  compare-oem-research-metadata:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout comparison scripts and derived OEM metadata
+        uses: actions/checkout@v4
+
+      - name: Run synthetic module dependency unit tests
+        run: |
+          set -euo pipefail
+          python3 -m py_compile stage11/audit_dependencies.py stage11/test_audit_dependencies.py
+          python3 -m unittest discover -s stage11 -p 'test_*.py' -v
+
+      - name: Download exactly pinned Stage 7 success artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage11-stage7-input
+          gh run download 38721433935 \
+            --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT \
+            --dir stage11-stage7-input
+          (cd stage11-stage7-input && sha256sum -c SHA256SUMS)
+
+      - name: Compare eight OEM power modules with compiled Stage 7 graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 stage11/audit_dependencies.py \
+            --manifest stage11/oem-twd9-power-metadata.json \
+            --stage7-artifact stage11-stage7-input \
+            --output stage11-artifacts/module-dependency-comparison.json \
+            2>&1 | tee stage11-audit.log
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('stage11-artifacts/module-dependency-comparison.json').read_text())
+          assert report['stage7_power_modules_in_initramfs']==8
+          assert report['stage7_power_modules_autoload'] is False
+          assert report['physical_fastboot_boot_authorization']=='BLOCKED'
+          print('Stage 11 static comparison complete. Physical boot remains BLOCKED.')
+          PY
+
+      - name: Publish verified static diff and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage11-TWD9-MODULE-GRAPH-DO-NOT-BOOT
+          path: |
+            stage11-audit.log
+            stage11-artifacts/module-dependency-comparison.json
+          if-no-files-found: ignore
+          retention-days: 30
