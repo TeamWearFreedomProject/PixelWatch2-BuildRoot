@@ -23,7 +23,7 @@ real-world thermal management or safe battery charging.
    olddefconfig to test whether dependency constraints allow it.
 6. Ensure ARCH=arm64, SPMI, thermal support, SOUND=n and the export
    configuration remain as expected. Fail if the alarm cannot be enabled.
-7. Compile only drivers/thermal/qcom-spmi-temp-alarm.o with aarch64-linux-gnu
+7. Compile only drivers/thermal/qcom/qcom-spmi-temp-alarm.o with aarch64-linux-gnu
    GCC. Require a real ELF64 little-endian AArch64 relocatable object.
 8. Save the original/research configs and a JSON report of changed config
    options, source pin, ELF hash and limitations. The compiled binary is
