@@ -31,14 +31,14 @@ jobs:
           (cd stage14-input/stage7 && sha256sum -c SHA256SUMS)
           gh run download 39184008018 --repo "$GH_REPO" \
             --name aurora-stage13-OF-SOURCE-TABLE-AUDIT-DO-NOT-BOOT --dir stage14-input/stage13
-          test -s stage14-input/stage13/eos-source-of-match-report.json
+          test -s stage14-input/stage13/stage13-artifacts/eos-source-of-match-report.json
       - name: Checkout exact source pins for evidence-driven Kbuild review
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import json
           from pathlib import Path
-          report=json.loads(Path('stage14-input/stage13/eos-source-of-match-report.json').read_text())
+          report=json.loads(Path('stage14-input/stage13/stage13-artifacts/eos-source-of-match-report.json').read_text())
           assert report['static_scan_completed'] is True
           assert report['physical_fastboot_boot_authorization']=='BLOCKED'
           pins=report['source_revisions']
@@ -62,7 +62,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 stage14/trace_kbuild.py \
-            --stage13-report stage14-input/stage13/eos-source-of-match-report.json \
+            --stage13-report stage14-input/stage13/stage13-artifacts/eos-source-of-match-report.json \
             --kernel-config stage14-input/stage7/kernel.config \
             --kernel-source stage14-source/kernel \
             --bms-source stage14-source/bms \
