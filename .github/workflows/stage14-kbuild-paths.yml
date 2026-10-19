@@ -1,0 +1,88 @@
+name: Stage 14 - trace EOS Kbuild power and USB source paths (NO WATCH)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage14-kbuild-paths.yml'
+      - 'stage14/**'
+      - 'docs/STAGE14.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  kbuild-forensics:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run synthetic Kbuild tests
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s stage14 -p 'test_*.py' -v
+      - name: Download pinned Stage 7 config and Stage 13 source report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage14-input/stage7 stage14-input/stage13
+          gh run download 38721433935 --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT --dir stage14-input/stage7
+          (cd stage14-input/stage7 && sha256sum -c SHA256SUMS)
+          gh run download 39184008018 --repo "$GH_REPO" \
+            --name aurora-stage13-OF-SOURCE-TABLE-AUDIT-DO-NOT-BOOT --dir stage14-input/stage13
+          test -s stage14-input/stage13/stage13-artifacts/eos-source-of-match-report.json
+      - name: Checkout exact source pins for evidence-driven Kbuild review
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('stage14-input/stage13/stage13-artifacts/eos-source-of-match-report.json').read_text())
+          assert report['static_scan_completed'] is True
+          assert report['physical_fastboot_boot_authorization']=='BLOCKED'
+          pins=report['source_revisions']
+          Path('stage14-pins.tsv').write_text(
+            ''.join(name+'\t'+url+'\t'+pins[name]+'\n'
+                    for name,url in (
+                      ('kernel','https://android.googlesource.com/kernel/msm'),
+                      ('bms','https://android.googlesource.com/kernel/google-modules/bms'),
+                      ('soc','https://android.googlesource.com/kernel/google-modules/soc/msm'))))
+          PY
+          mkdir -p stage14-source
+          while IFS="$(printf '\t')" read -r name url sha; do
+            git init -q "stage14-source/$name"
+            git -C "stage14-source/$name" remote add origin "$url"
+            git -C "stage14-source/$name" fetch -q --depth 1 origin "$sha"
+            git -C "stage14-source/$name" checkout -q --detach FETCH_HEAD
+            test "$(git -C "stage14-source/$name" rev-parse HEAD)" = "$sha"
+          done < stage14-pins.tsv
+      - name: Trace Kbuild rules for actual OEM-compatible driver sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 stage14/trace_kbuild.py \
+            --stage13-report stage14-input/stage13/stage13-artifacts/eos-source-of-match-report.json \
+            --kernel-config stage14-input/stage7/kernel.config \
+            --kernel-source stage14-source/kernel \
+            --bms-source stage14-source/bms \
+            --soc-source stage14-source/soc \
+            --output stage14-artifacts/kbuild-paths.json 2>&1 | tee stage14-kbuild.log
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          d=json.loads(Path('stage14-artifacts/kbuild-paths.json').read_text())
+          assert d['stage']==14 and d['static_kbuild_tracing']=='COMPLETED'
+          assert d['physical_fastboot_boot_authorization']=='BLOCKED'
+          assert len(d['all_compatible_traces'])==16
+          PY
+      - name: Upload static logs and source linkage findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage14-KBUILD-THERMAL-POWER-DO-NOT-BOOT
+          path: |
+            stage14-kbuild.log
+            stage14-artifacts/
+          if-no-files-found: ignore
+          retention-days: 30
