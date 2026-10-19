@@ -50,3 +50,14 @@ termination, PMIC hardware binding, safe shutdown or recovery.
 - Review USB PHY/UDC and serial console readiness independently.
 
 The existing Stage 7 boot image must remain labeled DO NOT BOOT.
+
+## Stage 17 diagnostic correction (Kbuild parent traversal)
+The unmodified Stage 7 kernel can compile its ARM64 Image while omitting
+qcom-spmi-temp-alarm.o even after CONFIG_QCOM_SPMI_TEMP_ALARM=y.
+A **scratch-checkout-only** Kbuild experiment now explicitly traverses
+`drivers/thermal/qcom/` when not already unconditional in the parent
+`drivers/thermal/Makefile`. It records whether that research-only rule
+was necessary. Thus object success is conditional on this temporary
+build-system route; it is NOT evidence that enabling only the Kconfig
+symbol makes the stock upstream image include the driver.
+No patched kernel Image or binary object is published for physical use.
