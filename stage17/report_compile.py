@@ -33,8 +33,12 @@ def compare(baseline, variant):
             raise ValueError("Unintended change to "+keep)
     return changes
 
-def report(baseline, variant, obj, source, kernel_image):
+def report(baseline, variant, obj, source, kernel_image, routing_report):
     difference=compare(baseline,variant)
+    routing = routing_report.read_text().strip()
+    if routing not in ("scratch-only-parent-kbuild-rule-added",
+                       "already-unconditionally-reached"):
+        raise ValueError("Unexpected research Kbuild routing state")
     kernel=kernel_image.read_bytes()
     if len(kernel)<64 or struct.unpack_from("<I",kernel,56)[0]!=0x644D5241:
         raise ValueError("Build did not produce a real ARM64 kernel Image")
@@ -64,6 +68,9 @@ def report(baseline, variant, obj, source, kernel_image):
         "research_kernel_image_sha256":hashlib.sha256(kernel).hexdigest(),
         "kernel_image_not_uploaded":True,
         "research_boot_image_created":False,
+        "scratch_parent_kbuild_routing":routing,
+        "original_stage7_source_modified":False,
+        "kernel_source_checkout_modified_during_research":routing=="scratch-only-parent-kbuild-rule-added",
         "module_protection_or_thermal_runtime_proven":False,
         "charging_safe_on_hardware":"NOT_TESTED",
         "device_tree_driver_probe":"NOT_TESTED",
@@ -74,10 +81,10 @@ def report(baseline, variant, obj, source, kernel_image):
 
 def main():
     p=argparse.ArgumentParser()
-    for arg in ("baseline","variant","object","kernel-source","kernel-image","output"):
+    for arg in ("baseline","variant","object","kernel-source","kernel-image","routing-report","output"):
         p.add_argument("--"+arg,type=pathlib.Path,required=True)
     a=p.parse_args()
-    output=report(a.baseline,a.variant,a.object,a.kernel_source,a.kernel_image)
+    output=report(a.baseline,a.variant,a.object,a.kernel_source,a.kernel_image,a.routing_report)
     a.output.parent.mkdir(parents=True,exist_ok=True)
     a.output.write_text(json.dumps(output,indent=2)+"\n")
     print("STAGE17_AARCH64_THERMAL_OBJECT_COMPILED")
