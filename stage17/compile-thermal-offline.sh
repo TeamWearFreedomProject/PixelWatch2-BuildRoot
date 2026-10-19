@@ -44,7 +44,7 @@ echo '=== Original thermal parent Kbuild qcom routing ==='
 grep -n 'qcom/' "$KS/drivers/thermal/Makefile" | tee "$OUT/original-parent-qcom-rules.txt" || true
 grep -Fxq 'CONFIG_QCOM_SPMI_TEMP_ALARM=y' "$KO/.config"
 PARENT="$KS/drivers/thermal/Makefile"
-if grep -Eq '^[[:space:]]*obj-y[[:space:]]*\\+=[[:space:]]*qcom/' "$PARENT"; then
+if grep -Eq '^[[:space:]]*obj-y[[:space:]]*[+]=[[:space:]]*qcom/' "$PARENT"; then
   echo "already-unconditionally-reached" > "$OUT/research-parent-routing.txt"
 else
   printf '\n# STAGE17 OFFLINE SCRATCH ONLY: traverse qcom thermal subdir\nobj-y += qcom/\n' >> "$PARENT"
