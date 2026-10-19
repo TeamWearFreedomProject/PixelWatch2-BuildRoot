@@ -33,8 +33,11 @@ def compare(baseline, variant):
             raise ValueError("Unintended change to "+keep)
     return changes
 
-def report(baseline, variant, obj, source):
+def report(baseline, variant, obj, source, kernel_image):
     difference=compare(baseline,variant)
+    kernel=kernel_image.read_bytes()
+    if len(kernel)<64 or struct.unpack_from("<I",kernel,56)[0]!=0x644D5241:
+        raise ValueError("Build did not produce a real ARM64 kernel Image")
     data=obj.read_bytes()
     if not (len(data)>64 and data[:6]==b"\x7fELF\x02\x01"):
         raise ValueError("Compiled object is not ELF64 little-endian")
@@ -56,7 +59,10 @@ def report(baseline, variant, obj, source):
         "thermal_alarm_kconfig_baseline":"n",
         "thermal_alarm_kconfig_research_variant":"y",
         "compile_object_verified":True,
-        "research_kernel_image_created":False,
+        "research_kernel_image_created":True,
+        "research_kernel_image_bytes":len(kernel),
+        "research_kernel_image_sha256":hashlib.sha256(kernel).hexdigest(),
+        "kernel_image_not_uploaded":True,
         "research_boot_image_created":False,
         "module_protection_or_thermal_runtime_proven":False,
         "charging_safe_on_hardware":"NOT_TESTED",
@@ -68,10 +74,10 @@ def report(baseline, variant, obj, source):
 
 def main():
     p=argparse.ArgumentParser()
-    for arg in ("baseline","variant","object","kernel-source","output"):
+    for arg in ("baseline","variant","object","kernel-source","kernel-image","output"):
         p.add_argument("--"+arg,type=pathlib.Path,required=True)
     a=p.parse_args()
-    output=report(a.baseline,a.variant,a.object,a.kernel_source)
+    output=report(a.baseline,a.variant,a.object,a.kernel_source,a.kernel_image)
     a.output.parent.mkdir(parents=True,exist_ok=True)
     a.output.write_text(json.dumps(output,indent=2)+"\n")
     print("STAGE17_AARCH64_THERMAL_OBJECT_COMPILED")
