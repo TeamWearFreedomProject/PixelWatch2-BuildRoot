@@ -1,0 +1,80 @@
+name: Stage 16 - aggregate offline source, USB and hardware NO-GO gates
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage16-regression-gate.yml'
+      - 'stage16/**'
+      - 'docs/STAGE16.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  final-static-regression:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests for fail-closed boot authorization and artifact hashes
+        run: |
+          set -euo pipefail
+          python3 -m py_compile stage16/aggregate_readiness.py stage16/test_aggregate_readiness.py
+          python3 -m unittest discover -s stage16 -p 'test_*.py' -v
+
+      - name: Retrieve exact successful Stage 7, 13, 14 and 15 evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage16-input/{stage7,stage13,stage14,stage15}
+          gh run download 38721433935 --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT \
+            --dir stage16-input/stage7
+          (cd stage16-input/stage7 && sha256sum -c SHA256SUMS)
+          gh run download 39184008018 --repo "$GH_REPO" \
+            --name aurora-stage13-OF-SOURCE-TABLE-AUDIT-DO-NOT-BOOT \
+            --dir stage16-input/stage13
+          gh run download 39185293881 --repo "$GH_REPO" \
+            --name aurora-stage14-KBUILD-THERMAL-POWER-DO-NOT-BOOT \
+            --dir stage16-input/stage14
+          gh run download 39185124437 --repo "$GH_REPO" \
+            --name aurora-stage15-USB-GADGET-STARTUP-BOOT-BLOCKED \
+            --dir stage16-input/stage15
+          test -s stage16-input/stage13/stage13-artifacts/eos-source-of-match-report.json
+          test -s stage16-input/stage14/stage14-artifacts/kbuild-paths.json
+          test -s stage16-input/stage15/stage15-artifacts/usb-acm-safety.json
+
+      - name: Build integrated static readiness and NO-GO report
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 stage16/aggregate_readiness.py \
+            --stage7-artifact stage16-input/stage7 \
+            --stage13-report stage16-input/stage13/stage13-artifacts/eos-source-of-match-report.json \
+            --stage14-report stage16-input/stage14/stage14-artifacts/kbuild-paths.json \
+            --stage15-report stage16-input/stage15/stage15-artifacts/usb-acm-safety.json \
+            --oem-manifest stage12/twd9-dtb-derived.json \
+            --output stage16-artifacts/readiness-no-go.json 2>&1 | tee stage16-audit.log
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('stage16-artifacts/readiness-no-go.json').read_text())
+          assert r["static_regression_gate"]=="PASS"
+          assert r["physical_boot_readiness"]=="NO_GO"
+          assert r["physical_fastboot_boot_authorization"]=="BLOCKED"
+          assert r["power_modules_auto_loaded"] is False
+          assert len(r["blockers"])>=5
+          print("STATIC TESTS PASS; REAL-WATCH FASTBOOT BOOT BLOCKED")
+          PY
+
+      - name: Publish independent report without OEM binaries or hardware access
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage16-FINAL-STATIC-GATE-HARDWARE-NO-GO
+          path: |
+            stage16-audit.log
+            stage16-artifacts/readiness-no-go.json
+          if-no-files-found: ignore
+          retention-days: 30
