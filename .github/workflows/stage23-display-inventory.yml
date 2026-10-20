@@ -1,0 +1,59 @@
+name: Stage 23 - Display and input inventory (reuse Stage 22)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage23-display-inventory.yml'
+      - 'stage23/**'
+      - 'docs/STAGE23.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: stage23-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  inventory:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate diagnostic and capture analysis
+        run: |
+          set -euo pipefail
+          sh -n stage23/inventory.sh
+          python3 -m py_compile stage23/*.py
+          python3 -m unittest discover -s stage23 -p 'test_*.py' -v
+          python3 stage23/make_capture.py --check
+      - name: Parse Windows paste-only procedure
+        shell: pwsh
+        run: |
+          $text = Get-Content stage23/WINDOWS-CAPTURE.md -Raw
+          $blocks = [regex]::Matches($text, '(?s)```powershell\r?\n(.*?)```')
+          if ($blocks.Count -ne 2) { throw 'Expected two PowerShell blocks' }
+          foreach ($block in $blocks) {
+            $tokens = $null; $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseInput($block.Groups[1].Value, [ref]$tokens, [ref]$errors)
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+      - name: Audit immutable Stage 22 boot and userspace
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh run download 39373072577 --repo "$GH_REPO" \
+            --name aurora-stage22-MONACO-UNWIND-BOOT-CANDIDATE --dir stage23-input
+          python3 stage23/audit.py --input stage23-input --output stage23-artifacts/static-report.json
+          cp stage23/WINDOWS-CAPTURE.md stage23/inventory.sh stage23/pins.json docs/STAGE23.md stage23-artifacts/
+          (cd stage23-artifacts && sha256sum *.json *.md *.sh > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage23-DISPLAY-INPUT-DIAGNOSTICS-REUSE-STAGE22
+          path: stage23-artifacts/
+          retention-days: 30
+          if-no-files-found: error

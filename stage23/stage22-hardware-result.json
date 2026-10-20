@@ -1,0 +1,29 @@
+{
+  "stage": 22,
+  "observed_date_local": "2026-10-20",
+  "timezone": "Asia/Tokyo",
+  "performed_by_ci_or_assistant": false,
+  "evidence_origin": "user_uploaded_serial_text_and_subsequent_fastboot_return_confirmation",
+  "kernel_build": 22,
+  "kernel_host": "aurora-ci@stage22",
+  "shell_banner": "AURORA_STAGE20_USB_SHELL",
+  "uptime_response": "19.15 66.98",
+  "dmesg_snapshot_lines": 848,
+  "dmesg_begin_and_end_markers": true,
+  "kasan_generic_initialization_observed": true,
+  "kasan_use_after_free_report_observed_in_snapshot": false,
+  "dmesg_dropped_byte_notices": 0,
+  "earlier_streaming_console_dropped_bytes": 2022,
+  "later_registrations": {
+    "disp_cc_seconds": 7.438794,
+    "gcc_seconds": 7.601752,
+    "gpu_cc_seconds": 7.625807,
+    "interconnect_1880000_seconds": 7.733817
+  },
+  "fastboot_return": "user_confirmed_in_reply_to_approximately_90_second_return_question",
+  "exact_return_timing": "NOT_MEASURED",
+  "input_text_bytes": 79752,
+  "input_text_sha256": "2aa75bba9651705bf95568d92efd512db1ac318a34df7381db446e1bb2dfbc91",
+  "normalized_lf_dmesg_sha256": "5c1eb89e0a0f32bf5ae6519873fde9d2bf6c76f94cd52e37f7e8091ba388c9c8",
+  "display_touch_and_long_term_stability": "NOT_VALIDATED"
+}

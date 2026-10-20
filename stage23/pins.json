@@ -1,0 +1,20 @@
+{
+  "stage22_commit": "d8c8eff0e60198f492485f2d1e2c6495e93c10c3",
+  "stage22_run": 39373072577,
+  "stage22_artifact": 12242497802,
+  "stage22_zip_sha256": "3c74135ff1dbb44b4f4a25dfc5116419ae72b58d9ea62d95d94f0358964e4dc6",
+  "files": {
+    "boot-stage22.img": "b843667c765bad061410118c47a5956314331ae263397ab4f655782df1f00a2a",
+    "rootfs.cpio.gz": "94ac020a70ac46384ccf5f715a5ff29f8247ce7a4dc9fea844c4d6f485cf183a",
+    "kernel.config": "8eb4f7c435ad815d8286c087d005093d17614308c8b7702de9fff981cb438a28",
+    "boot-report.json": "daed532d11de53e22be98076c12413be68be6a0c174e1fb9cb117f4f684e6e3a"
+  },
+  "reference": {
+    "repository": "https://github.com/argosphil/aurora",
+    "revision": "e3d5fc73b4c97ea19ae5a0fd1d4eee1324703ad0",
+    "readme_sha256": "dba0111dff29996b61cda1e590ece8880b64fe4228efcf232161915302dcba3f",
+    "display_gitlink": "de60505351e76a27be346eb381e460eb746c52a9",
+    "touch_gitlink": "c4b2d5c1e5b4c54e175725dc27b2d34954fdfe26",
+    "scope": "Upstream research references, not verified compatible modules for Stage 22"
+  }
+}
