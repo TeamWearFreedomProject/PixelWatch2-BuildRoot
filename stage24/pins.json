@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "target": {
+    "codename": "eos",
+    "userspace": "armhf",
+    "kernel_arch": "arm64",
+    "ubuntu_release": "focal",
+    "system_partition_size": 3600000000,
+    "boot_partition_size": 67108864,
+    "init_boot_partition_size": 8388608
+  },
+  "repositories": {
+    "port": {
+      "url": "https://gitlab.com/ubports/porting/community-ports/android13/google-eos/google-eos.git",
+      "revision": "d2b4512ed1758b5ad73118cd311e2fca32f39cf5",
+      "path": "port"
+    },
+    "tools": {
+      "url": "https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools.git",
+      "revision": "dd1afd8efc5bb895efc313b61960bd6537dee24a",
+      "path": "port/build"
+    },
+    "kernel": {
+      "url": "https://gitlab.com/ubports/porting/community-ports/android13/google-eos/kernel-for-google-eos.git",
+      "revision": "063840c5aae117bf0faac8b34fba0e37c9f619f8",
+      "path": "port/workdir/downloads/kernel-for-google-eos"
+    },
+    "clang": {
+      "url": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86",
+      "revision": "9f759dee5cdc5f85d076c642a192f6a9232f7058",
+      "path": "port/workdir/downloads/linux-x86",
+      "sparse": [
+        "clang-r450784e"
+      ]
+    },
+    "gcc_arm": {
+      "url": "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9",
+      "revision": "09518d29069cf5993d0ef25c96a09bc851819b54",
+      "path": "port/workdir/downloads/arm-linux-androideabi-4.9"
+    },
+    "gcc_arm64": {
+      "url": "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9",
+      "revision": "961622e926a1b21382dba4dd9fe0e5fb3ee5ab7c",
+      "path": "port/workdir/downloads/aarch64-linux-android-4.9"
+    },
+    "build_tools": {
+      "url": "https://android.googlesource.com/platform/prebuilts/build-tools",
+      "revision": "f6813860e16b2fa1461a15e7b8a3127dfdee021a",
+      "path": "port/workdir/downloads/build-tools"
+    },
+    "kernel_build_tools": {
+      "url": "https://android.googlesource.com/kernel/prebuilts/build-tools",
+      "revision": "083e34d8c2c4239be4967172427268c267585951",
+      "path": "port/workdir/downloads/kernel-build-tools"
+    },
+    "avb": {
+      "url": "https://android.googlesource.com/platform/external/avb",
+      "revision": "342b0af8402a12b4c8cce6af5b54653beab1b05c",
+      "path": "port/workdir/downloads/avb"
+    },
+    "mkbootimg": {
+      "url": "https://github.com/LineageOS/android_system_tools_mkbootimg",
+      "revision": "40a19c4c5ffe8b86c6c61318c8aa4ffe35d6e7ad",
+      "path": "port/workdir/downloads/android_system_tools_mkbootimg"
+    }
+  },
+  "downloads": {
+    "rootfs": {
+      "name": "rootfs",
+      "filename": "ubuntu-touch-android9plus-rootfs-armhf.tar.gz",
+      "url": "https://ci.ubports.com/job/ubuntu-touch-rootfs/job/ubports%252Ffocal/394/artifact/ubuntu-touch-android9plus-rootfs-armhf.tar.gz",
+      "sha256": "b42fb4ace5b9bdf1acbaed1a83dd28a347d75ccd2b79c37eed8114aa8ae59be3",
+      "size": 700318051
+    },
+    "halium": {
+      "name": "halium",
+      "filename": "halium_halium_arm.tar.xz",
+      "url": "https://ci.ubports.com/job/UBportsCommunityPortsJenkinsCI/job/ubports%252Fporting%252Fcommunity-ports%252Fjenkins-ci%252Fgeneric_arm64/job/halium-13.0-arm32/726/artifact/halium_halium_arm.tar.xz",
+      "sha256": "3b2b4ec7f26c7262af745d587a8f1c7d8a5e7a23d5ced7d05ed493f59fad7774",
+      "size": 87847000
+    },
+    "ramdisk": {
+      "name": "ramdisk",
+      "filename": "initrd.img-touch-arm64",
+      "url": "https://github.com/Halium/initramfs-tools-halium/releases/download/dynparts/initrd.img-touch-arm64",
+      "sha256": "da1073d025e3ffca88b70463841509260e364771ce0733ed76a0b6eaf7eedc8e",
+      "size": 5404482
+    }
+  }
+}

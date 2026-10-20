@@ -1,0 +1,114 @@
+name: Stage 24 - Ubuntu Touch from GitLab
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage24-ubuntu-touch.yml'
+      - 'stage24/**'
+      - 'docs/STAGE24.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stage24-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate scripts, input pins and filesystem packaging
+        run: |
+          set -euo pipefail
+          bash -n stage24/build.sh stage24/assemble.sh
+          python3 -m py_compile stage24/*.py
+          sudo python3 -m unittest discover -s stage24 -p 'test_*.py' -v
+
+  adaptation:
+    needs: validate
+    runs-on: ubuntu-22.04
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install upstream-compatible build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends bc bison build-essential \
+            ca-certificates cpio curl fakeroot flex git kmod libelf-dev libssl-dev \
+            libtinfo5 lz4 python2 python3 unzip wget xz-utils pahole libbpf-dev
+      - name: Fetch pinned GitLab port, kernel and toolchain
+        run: python3 stage24/fetch.py --phase adaptation
+      - name: Build ARM64 kernel and ARM32-compatible adaptation
+        run: |
+          set -euo pipefail
+          bash stage24/build.sh 2>&1 | tee stage24-build.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage24-UT-ADAPTATION
+          path: stage24-artifacts/adaptation/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Save build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage24-UT-BUILD-LOGS
+          path: |
+            stage24-build.log
+            stage24-work/sources.json
+            stage24-work/port/workdir/downloads/KERNEL_OBJ/.config
+          retention-days: 30
+          if-no-files-found: ignore
+
+  rootfs:
+    needs: adaptation
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: aurora-stage24-UT-ADAPTATION
+          path: stage24-input
+      - name: Install image packaging tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends e2fsprogs zstd xz-utils
+      - name: Fetch verified Focal ARM32 rootfs and Halium 13 ARM32 container
+        run: |
+          (cd stage24-input && sha256sum -c SHA256SUMS)
+          python3 stage24/fetch.py --phase assemble
+      - name: Assemble and verify writable native Ubuntu rootfs
+        run: |
+          set -euo pipefail
+          sudo bash stage24/assemble.sh stage24-work stage24-input/device_eos.tar.xz stage24-artifacts/rootfs 2>&1 | tee stage24-rootfs.log
+      - name: Upload compressed rootfs and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage24-UT-FOCAL-RW-ROOTFS
+          path: |
+            stage24-artifacts/rootfs/ubuntu.img.zst
+            stage24-artifacts/rootfs/*.json
+            stage24-artifacts/rootfs/*.md
+            stage24-artifacts/rootfs/SHA256SUMS
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
+      - name: Save image assembly diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage24-UT-ROOTFS-LOGS
+          path: |
+            stage24-rootfs.log
+            stage24-artifacts/rootfs/*.json
+          retention-days: 30
+          if-no-files-found: ignore
