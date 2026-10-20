@@ -1,0 +1,16 @@
+#!/bin/sh
+echo AURORA_STAGE20_DIAGNOSTICS
+uname -a
+cat /proc/uptime
+cat /proc/mounts
+for d in /sys/class/udc/*; do
+    [ -d "$d" ] || continue
+    echo "UDC $d"
+    cat "$d/state" 2>/dev/null
+done
+for d in /sys/class/thermal/thermal_zone*; do
+    [ -d "$d" ] || continue
+    echo "THERMAL $d"
+    cat "$d/type" "$d/temp" 2>/dev/null
+done
+echo 'Values are unvalidated; a thermal value alone does not prove battery protection.'

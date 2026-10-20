@@ -1,0 +1,11 @@
+#!/bin/sh
+# A software deadline, NOT a hardware watchdog or a recovery guarantee.
+R=${AURORA_TEST_ROOT:-}
+if [ -n "$R" ]; then
+    [ "$R" != / ] && [ -f "$R/.aurora-test-root" ] || exit 64
+    sleep 0
+else
+    /bin/busybox sleep 90
+    echo '<5>AURORA_STAGE20_DEADLINE: requesting bootloader restart' > /dev/kmsg
+fi
+"$R/usr/sbin/aurora-return" --request

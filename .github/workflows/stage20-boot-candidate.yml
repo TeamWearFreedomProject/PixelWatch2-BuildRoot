@@ -1,0 +1,131 @@
+name: Stage 20 - Bounded USB shell boot candidate
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage20-boot-candidate.yml'
+      - 'stage20/**'
+      - 'docs/STAGE20.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: stage20-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  candidate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 105
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test initramfs, USB setup and timeout in marked sandboxes
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s stage20 -p 'test_*.py' -v
+          sh -n stage20/overlay/init
+          for file in stage20/overlay/usr/sbin/* stage20/overlay/usr/bin/*; do sh -n "$file"; done
+          bash -n stage20/prepare-kernel.sh stage20/build-kernel.sh
+      - name: Parse Windows scripts
+        shell: pwsh
+        run: |
+          foreach ($path in @('stage20/preflight.ps1','stage20/serial-console.ps1')) {
+            $tokens=$null; $errors=$null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $path),[ref]$tokens,[ref]$errors)
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+      - name: Install kernel, ARM32 helper and QEMU tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential bc bison flex libelf-dev libncurses-dev libssl-dev \
+            make patch perl python3 git rsync gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu dwarves \
+            gcc-arm-linux-gnueabi libc6-dev-armel-cross qemu-user-static cpio
+      - name: Download immutable Stage 7 and Stage 19 inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh run download 38721433935 --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT --dir stage20-input/stage7
+          gh run download 39348516565 --repo "$GH_REPO" \
+            --name aurora-stage19-THERMAL-KERNEL-LINK-EVIDENCE --dir stage20-input/stage19
+          (cd stage20-input/stage7 && sha256sum -c SHA256SUMS)
+          (cd stage20-input/stage19/stage19-artifacts && sha256sum -c SHA256SUMS)
+      - name: Build ARM32 return helper and dedicated rootfs
+        run: |
+          set -euo pipefail
+          mkdir -p stage20-work stage20-artifacts
+          arm-linux-gnueabi-gcc -Os -static -s -Wall -Wextra -Werror stage20/return_bootloader.c -o stage20-work/aurora-return
+          qemu-arm-static stage20-work/aurora-return --check | tee stage20-artifacts/helper-check.txt
+          grep -Fxq AURORA_RETURN_HELPER_ARM32_CHECK_OK stage20-artifacts/helper-check.txt
+          python3 stage20/prepare_rootfs.py --input stage20-input/stage7/rootfs.cpio.gz \
+            --overlay stage20/overlay --helper stage20-work/aurora-return \
+            --output stage20-artifacts/rootfs.cpio.gz --report stage20-artifacts/rootfs-report.json
+      - name: Execute actual ARM32 init check and inspect BusyBox applets
+        run: |
+          set -euo pipefail
+          mkdir -p stage20-work/sysroot
+          (cd stage20-work/sysroot && gzip -dc ../../stage20-artifacts/rootfs.cpio.gz | sudo cpio -idm --no-absolute-filenames --quiet)
+          sudo cp "$(command -v qemu-arm-static)" stage20-work/sysroot/usr/bin/qemu-arm-static
+          timeout 20s sudo chroot stage20-work/sysroot /usr/bin/qemu-arm-static /bin/busybox sh /init --check | tee stage20-artifacts/init-check.txt
+          grep -Fxq AURORA_STAGE20_INIT_CHECK_OK stage20-artifacts/init-check.txt
+          timeout 20s sudo chroot stage20-work/sysroot /usr/bin/qemu-arm-static /bin/busybox --list > stage20-artifacts/busybox-applets.txt
+          for applet in sh getty mount sleep mkdir ln grep cat uname; do grep -Fxq "$applet" stage20-artifacts/busybox-applets.txt; done
+          timeout 20s sudo chroot stage20-work/sysroot /usr/bin/qemu-arm-static /bin/busybox getty --help > stage20-artifacts/getty-help.txt 2>&1 || test "$?" = 1
+          grep -q 'LOGIN' stage20-artifacts/getty-help.txt
+      - name: Fetch pinned kernel and apply proven Stage 19 patches
+        run: bash stage20/prepare-kernel.sh
+      - name: Compile ARM64 kernel with the new ARM32 initramfs
+        run: |
+          set -euo pipefail
+          bash stage20/build-kernel.sh 2>&1 | tee stage20-build.log
+      - name: Verify final linkage, embedded rootfs and boot image structure
+        run: |
+          set -euo pipefail
+          python3 stage19/verify_link.py --out stage20-work/out --mode on --output stage20-artifacts/link-evidence.json
+          python3 - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          out=subprocess.check_output(['aarch64-linux-gnu-nm','--defined-only','--format=posix','stage20-work/out/vmlinux'],text=True)
+          symbols={p[0]:p[1:] for p in map(str.split,out.splitlines()) if p}
+          for name in ('extcon_usb_shim_probe','extcon_usb_shim','extcon_usb_shim_init'):
+              assert name in symbols, name
+          calls=[s for s in symbols if s.startswith('__initcall') and 'extcon_usb_shim_init' in s]
+          assert len(calls)==1
+          Path('stage20-artifacts/usb-shim-link.json').write_text(json.dumps({'linked':True,'initcalls':calls,'runtime':'NOT_TESTED'},indent=2)+'\n')
+          PY
+          python3 stage20/verify_embedded.py --vmlinux stage20-work/out/vmlinux \
+            --rootfs stage20-artifacts/rootfs.cpio.gz --output stage20-artifacts/embedded-rootfs.json
+          python3 stage20/package_boot.py --template stage20-input/stage7/boot.img \
+            --kernel stage20-work/out/arch/arm64/boot/Image \
+            --output stage20-artifacts/boot-stage20.img --report stage20-artifacts/boot-report.json
+          python3 scripts/verify_bootimg.py --boot stage20-artifacts/boot-stage20.img \
+            --kernel stage20-work/out/arch/arm64/boot/Image | tee stage20-artifacts/boot-structure.txt
+          cp stage20/preflight.ps1 stage20/serial-console.ps1 stage20-artifacts/
+          cp docs/STAGE20.md stage20-artifacts/README-STAGE20.md
+          cp stage20/pins.json stage20/usb-route-evidence.json stage20-artifacts/
+          (cd stage20-artifacts && sha256sum boot-stage20.img rootfs.cpio.gz kernel.config *.json *.ps1 *.md SOURCES.txt source-changes.patch > SHA256SUMS)
+      - name: Upload complete candidate bundle
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage20-BOOT-CANDIDATE-REQUIRES-PREFLIGHT
+          path: stage20-artifacts/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Upload diagnostics even if an earlier step failed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage20-diagnostics
+          path: |
+            stage20-build.log
+            stage20-artifacts/*.json
+            stage20-artifacts/*.txt
+          retention-days: 30
+          if-no-files-found: ignore
