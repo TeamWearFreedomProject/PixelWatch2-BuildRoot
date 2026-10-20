@@ -1,0 +1,35 @@
+Selected excerpts from the user's pasted serial capture, 2026-10-20 JST.
+This is not a complete raw log. Sections below are separated by excerpt markers.
+
+--- Kernel identity ---
+[    0.000000][    T0] Linux version 5.15.137-g99c2312e4f13-dirty (aurora-ci@stage20) (aarch64-linux-gnu-gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #20 SMP PREEMPT Fri, 16 Feb 2024 18:17:28 +0000
+
+--- Userspace banner ---
+AURORA_STAGE20_USB_SHELL
+Physical USB root console; software restart requested after 90s from PID 1.
+No Android storage partitions are mounted. No network services are started.
+Use aurora-info for read-only diagnostics; aurora-return --request to leave.
+
+--- USB shim fallback ---
+[    6.783607][    T1] extcon-usb-shim soc:extcon_usb_shim: Supplier notification setup failed: -517
+[    6.783672][    T1] extcon-usb-shim soc:extcon_usb_shim: Extcon will report as connected
+
+--- Memory-safety report ---
+[    7.166926][   T10] /soc/interconnect@1880000: Failed to get clk index: 3 ret: -517
+[    7.170536][   T10] ==================================================================
+[    7.170585][   T10] BUG: KASAN: use-after-free in __list_add_valid+0x44/0xf4
+[    7.170639][   T10] Read of size 8 at addr ffffff801607b480 by task kworker/u8:1/10
+[    7.170744][   T10] Hardware name: Google Aurora PVT 1.0 (DT)
+[    7.170775][   T10] Workqueue: events_unbound deferred_probe_work_func
+[    7.171146][   T10]  __list_add_valid+0x44/0xf4
+[    7.171189][   T10]  icc_provider_add+0x7c/0x100
+[    7.171236][   T10]  qnoc_probe+0x2e8/0x7fc
+
+--- Capture-loss marker present in supplied text ---
+[missed 8279 bytes]
+
+--- Successful shell command and responses ---
+aurora-stage20# uname -a; cat /proc/uptime
+Linux (none) 5.15.137-g99c2312e4f13-dirty #20 SMP PREEMPT Fri, 16 Feb 2024 18:17:28 +0000 aarch64 GNU/Linux
+9.74 29.41
+aurora-stage20#
