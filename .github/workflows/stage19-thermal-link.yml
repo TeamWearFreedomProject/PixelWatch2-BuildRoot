@@ -1,0 +1,72 @@
+name: Stage 19 - Conditional PMIC thermal linkage and OFF control
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage19-thermal-link.yml'
+      - 'stage19/**'
+      - 'docs/STAGE19.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  aarch64-thermal-link-proof:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 105
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test routing and final-symbol verification
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s stage19 -p 'test_*.py' -v
+          bash -n stage19/build-linked-kernel.sh
+      - name: Install AArch64 kernel build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential bc bison flex libelf-dev libncurses-dev libssl-dev \
+            make patch perl python3 git rsync gcc-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu dwarves
+      - name: Download pinned Stage 7 inputs and Stage 17 evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh run download 38721433935 --repo "$GH_REPO" \
+            --name aurora-stage7-OFFLINE-POWER-INTEGRATION-DO-NOT-BOOT \
+            --dir stage19-input/stage7
+          gh run download 39196338067 --repo "$GH_REPO" \
+            --name aurora-stage17-TEMP-ALARM-OBJECT-ONLY-NO-BOOT \
+            --dir stage19-input/stage17
+      - name: Link enabled kernel and relink disabled negative control
+        env:
+          AURORA_BUILD_JOBS: '4'
+        run: |
+          set -euo pipefail
+          bash stage19/build-linked-kernel.sh 2>&1 | tee stage19-build.log
+      - name: Summarize final kernel linkage evidence
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          r=json.loads(Path('stage19-artifacts/thermal-link-evidence.json').read_text())
+          assert r['positive_link_proof'] and r['negative_control_pass']
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('### Stage 19\n\nConditional parent Kbuild routing passed nine GNU make cases.\n\n')
+              f.write('AArch64 vmlinux contains the PMIC alarm driver and its initcall when enabled; OFF control contains neither.\n\n')
+              f.write('Only CONFIG_QCOM_SPMI_TEMP_ALARM differs between the two configs. Runtime and hardware remain untested.\n')
+          PY
+      - name: Upload readable evidence and build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage19-THERMAL-KERNEL-LINK-EVIDENCE
+          path: |
+            stage19-build.log
+            stage19-artifacts/
+          retention-days: 30
+          if-no-files-found: ignore
