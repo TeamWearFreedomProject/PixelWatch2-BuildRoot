@@ -1,0 +1,43 @@
+{
+  "stage": 21,
+  "observed_date_local": "2026-10-20",
+  "timezone": "Asia/Tokyo",
+  "evidence_origin": "user_pasted_fastboot_output_and_serial_capture",
+  "performed_by_ci_or_assistant": false,
+  "candidate_commit": "c7c0886ea1a0af126cbb639f65374fade359b03c",
+  "expected_boot_image_sha256": "cbb2331ff00febf39f0332aa7f04b657ba5da30cb7f81cbaa28a636687d3be65",
+  "user_hash_transcript": "truncated_display_prefix_matches_full_guard_result_not_supplied",
+  "boot_method": "fastboot boot",
+  "device": {
+    "product": "aurora",
+    "slot": "b",
+    "unlocked": "yes",
+    "is_userspace_fastboot": "no",
+    "bootloader": "eos-0.4-11366482",
+    "boot_partition_bytes": 67108864,
+    "max_download_bytes": 402653184
+  },
+  "observed": {
+    "kernel_release": "5.15.137-g99c2312e4f13-dirty",
+    "kernel_build": 20,
+    "kernel_architecture_from_uname": "aarch64",
+    "usb_serial_port": "COM5",
+    "shell_banner": "AURORA_STAGE20_USB_SHELL",
+    "shell_command": "uname -a; cat /proc/uptime",
+    "uptime_response": "9.74 29.41",
+    "return_to_fastboot_approximately_90_seconds": "user_reported",
+    "additional_driver_installation": "none_reported",
+    "ps1_execution": "blocked_by_policy",
+    "interactive_powershell_serial_capture": "succeeded"
+  },
+  "known_defects": {
+    "kasan_use_after_free": true,
+    "relevant_stack": ["__list_add_valid", "icc_provider_add", "qnoc_probe", "deferred_probe_work_func"],
+    "capture_missing_bytes": 8279,
+    "root_cause_status": "source_backed_error_unwind_hypothesis_not_fully_proven",
+    "kernel_fix_in_this_stage": false
+  },
+  "milestone": "FIRST_HARDWARE_KERNEL_AND_USB_SHELL_REACHED",
+  "stable_os": false,
+  "display_touch_charging_thermal_protection": "NOT_VALIDATED"
+}
