@@ -21,7 +21,16 @@ verify_stage17(root/'stage19-input/stage17/stage17-artifacts', pins)
 PY
 git init -q "$KS"
 git -C "$KS" remote add origin https://android.googlesource.com/kernel/msm
-git -C "$KS" fetch -q --depth 1 origin "$PIN"
+FETCHED=0
+for attempt in 1 2 3 4 5; do
+  if git -C "$KS" fetch -q --depth 1 origin "$PIN"; then
+    FETCHED=1
+    break
+  fi
+  echo "Pinned source fetch failed (attempt $attempt/5); retrying"
+  sleep "$((attempt * 3))"
+done
+test "$FETCHED" = 1
 git -C "$KS" checkout -q --detach FETCH_HEAD
 test "$(git -C "$KS" rev-parse HEAD)" = "$PIN"
 python3 - "$ROOT" "$KS" <<'PY'
