@@ -18,6 +18,8 @@ USB PHY, bootloader acceptance or runtime temperature behavior.
   devtmpfs, devpts and RAM filesystems. It does not use the old inittab,
   generic rc scripts, filesystem table, Android partitions, ADB or network
   services. The eight old-ABI `.ko` files are removed, not silently reused.
+  A static character-device `/dev/null` is present before devtmpfs mounts,
+  so the early background deadline process does not depend on a console.
 - CDC ACM setup waits up to 30 seconds for exactly one UDC, creates a single
   serial function, then starts a **physical-USB root shell** on ttyGS0 without
   a password prompt. This is a private debug session, not a network service.

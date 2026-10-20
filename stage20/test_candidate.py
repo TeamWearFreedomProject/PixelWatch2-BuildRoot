@@ -39,6 +39,8 @@ class ArchiveTests(unittest.TestCase):
         self.assertFalse(any(n.endswith('.ko') for n in lookup))
         self.assertIn(b'PID 1',lookup['init'][3])
         self.assertTrue(lookup['init'][1][1]&stat.S_IXUSR)
+        self.assertTrue(stat.S_ISCHR(lookup['dev/null'][1][1]))
+        self.assertEqual(lookup['dev/null'][1][9:11],[1,3])
         self.assertEqual(report['old_ko_removed'],1)
 
     def test_host_helper_rejected(self):

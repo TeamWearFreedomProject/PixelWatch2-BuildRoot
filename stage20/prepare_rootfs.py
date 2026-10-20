@@ -25,7 +25,7 @@ def prepare(data, overlay, helper):
     removed, records = [], []
     for record in original:
         name = record[2].removeprefix("./")
-        discard = (name in replacements or name in ("etc/inittab", "etc/fstab", "usr/bin/adbd", "usr/sbin/aurora-acm", "etc/aurora/dev-acm-enabled")
+        discard = (name in replacements or name in ("dev/null", "etc/inittab", "etc/fstab", "usr/bin/adbd", "usr/sbin/aurora-acm", "etc/aurora/dev-acm-enabled")
                    or name.startswith(("lib/modules/", "usr/lib/modules/", "etc/init.d/")) or name.endswith(".ko"))
         if discard:
             removed.append(name)
@@ -33,6 +33,10 @@ def prepare(data, overlay, helper):
             records.append((record[0], record[1], name, record[3]))
     registry = {r[2]: r for r in records}
     ino = max(r[1][0] for r in original)
+    # Noninteractive ash may redirect an asynchronous child's stdin here
+    # before devtmpfs is mounted. The Stage 7 archive only had /dev/console.
+    ino = add(records, registry, "dev/null", b"", stat.S_IFCHR | 0o666, ino)
+    registry["dev/null"][1][9:11] = [1, 3]
     for name, body in sorted(replacements.items()):
         ino = add(records, registry, name, body, stat.S_IFREG | 0o755, ino)
     blob = b"".join(encode(r) for r in records) + encode(fresh("TRAILER!!!", b"", 0, ino + 1))
@@ -48,6 +52,7 @@ def prepare(data, overlay, helper):
     return result, {"stage": 20, "input_rootfs_sha256": hashlib.sha256(data).hexdigest(),
                     "rootfs_sha256": hashlib.sha256(result).hexdigest(), "rootfs_bytes": len(result),
                     "dedicated_pid1": True, "old_ko_removed": sum(x.endswith(".ko") for x in removed),
+                    "initial_dev_null": "character_1_3",
                     "retained_ko_count": 0, "generic_rc_startup": False,
                     "software_deadline_seconds": 90, "hardware_watchdog": False,
                     "runtime_on_watch": "NOT_TESTED", "overlay_files": sorted(replacements)}
