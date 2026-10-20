@@ -23,4 +23,8 @@
 /stage23-work/
 /stage23-input/
 /stage23-artifacts/
+/stage24-work/
+/stage24-input/
+/stage24-artifacts/
+/stage24-*.log
 __pycache__/
