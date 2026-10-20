@@ -80,7 +80,10 @@ def report(out, mode, nm):
         if config.get(key) != expected:
             raise ValueError("Unexpected config " + key)
     vmlinux = out / "vmlinux"
-    check_elf(vmlinux, 2)
+    # arm64's CONFIG_RELOCATABLE links with -shared -Bsymbolic: ET_DYN,
+    # even though this is the final kernel, not a loadable kernel module.
+    elf_type = 3 if config.get("RELOCATABLE") == "y" else 2
+    check_elf(vmlinux, elf_type)
     symbols = parse_nm(subprocess.check_output([nm, "--defined-only", "--format=posix", str(vmlinux)], text=True))
     system_map = parse_map((out / "System.map").read_text())
     image = out / "arch/arm64/boot/Image"
@@ -95,6 +98,7 @@ def report(out, mode, nm):
         object_symbols = parse_nm(subprocess.check_output([nm, "--defined-only", "--format=posix", str(obj)], text=True))
     registrations = check_symbols(symbols, system_map, mode, object_symbols)
     return {"stage": 19, "mode": mode, "architecture": "AArch64", "alarm_config": expected_alarm,
+            "vmlinux_elf_type": "ET_DYN" if elf_type == 3 else "ET_EXEC",
             "vmlinux_sha256": digest(vmlinux), "image_sha256": digest(image),
             "image_bytes": image.stat().st_size, "config_sha256": digest(out / ".config"),
             "system_map_sha256": digest(out / "System.map"), "object_sha256": digest(obj) if obj else None,

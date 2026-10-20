@@ -79,10 +79,15 @@ class LinkTests(unittest.TestCase):
             check_elf(p, 2)
             with self.assertRaises(ValueError):
                 check_elf(p, 1)
+            struct.pack_into('<H', header, 16, 3)
+            p.write_bytes(header)
+            check_elf(p, 3)
+            with self.assertRaises(ValueError):
+                check_elf(p, 2)
             struct.pack_into('<H', header, 18, 62)
             p.write_bytes(header)
             with self.assertRaises(ValueError):
-                check_elf(p, 2)
+                check_elf(p, 3)
 
 
 if __name__ == '__main__':

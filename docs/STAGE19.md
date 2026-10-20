@@ -31,7 +31,10 @@ in the diagnostics. The underlying source revision remains
    match table and registration function in the final vmlinux. Exactly one
    corresponding initcall must be linked. The required linked symbols must
    agree in name, type and address with System.map. ELF64/AArch64 object and
-   executable types, Image magic and file hashes are checked.
+   linked-kernel types, Image magic and file hashes are checked. This exact
+   config uses `CONFIG_RELOCATABLE=y`, so arm64 links vmlinux with
+   `-shared -Bsymbolic` as **ET_DYN**, not ET_EXEC; the checker derives the
+   required type from the actual config. Driver objects remain ET_REL.
 4. A negative control disables only `QCOM_SPMI_TEMP_ALARM` and rebuilds Image
    and vmlinux in the **same output directory**. All alarm symbols must be
    absent from that final kernel despite stale object files possibly remaining.
