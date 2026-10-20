@@ -1,0 +1,14 @@
+--- a/drivers/thermal/Makefile
++++ b/drivers/thermal/Makefile
+@@ -51,7 +51,10 @@
+ obj-y				+= intel/
+ obj-$(CONFIG_TI_SOC_THERMAL)	+= ti-soc-thermal/
+ obj-y				+= st/
+-obj-$(CONFIG_QCOM_TSENS)	+= qcom/
++# TSENS and the SPMI alarm are independent drivers in qcom/.
++ifneq ($(filter y m,$(CONFIG_QCOM_TSENS) $(CONFIG_QCOM_SPMI_TEMP_ALARM)),)
++obj-y				+= qcom/
++endif
+ obj-y				+= tegra/
+ obj-$(CONFIG_HISI_THERMAL)     += hisi_thermal.o
+ obj-$(CONFIG_MTK_THERMAL)	+= mtk_thermal.o
