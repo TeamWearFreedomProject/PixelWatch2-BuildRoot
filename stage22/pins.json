@@ -1,0 +1,16 @@
+{
+  "kernel_revision": "99c2312e4f131f45993d7f4d741e61d647e7ed10",
+  "stage20_run": 39363419356,
+  "stage20_artifact": 12239385178,
+  "stage20_artifact_zip_sha256": "abc54272a77b558cc59fe008bd7b4bae9015f11cb97d0b6ed8f081135887cd5d",
+  "stage20_files": {
+    "boot-stage20.img": "cbb2331ff00febf39f0332aa7f04b657ba5da30cb7f81cbaa28a636687d3be65",
+    "kernel.config": "8eb4f7c435ad815d8286c087d005093d17614308c8b7702de9fff981cb438a28",
+    "rootfs.cpio.gz": "94ac020a70ac46384ccf5f715a5ff29f8247ce7a4dc9fea844c4d6f485cf183a"
+  },
+  "sources": {
+    "original": "bf69fc4553e6eb9a2471df1378ef531d34e7a20e52cc39e4f121a4d91258e565",
+    "patched": "b22db4ef470bd635ae69e415bf5a353608bb920593355ca89176cc66723f197b",
+    "core": "2ebc5eea5da9f6d7b6c856b337d979678ccbf77b6d0099f9eca2bee364c614ab"
+  }
+}

@@ -1,0 +1,93 @@
+name: Stage 22 - Monaco probe unwind boot candidate
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage22-monaco-unwind.yml'
+      - 'stage22/**'
+      - 'docs/STAGE22.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: stage22-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  candidate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 105
+    env:
+      PROJECT_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check host packaging tests and shell syntax
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s stage20 -p 'test_*.py' -v
+          bash -n stage22/prepare-kernel.sh stage22/build-kernel.sh
+          python3 -m py_compile stage22/run_probe_tests.py stage22/finalize.py
+      - name: Parse pasteable Windows capture commands
+        shell: pwsh
+        run: |
+          $text = Get-Content stage22/WINDOWS-CAPTURE.md -Raw
+          $blocks = [regex]::Matches($text, '(?s)```powershell\r?\n(.*?)```')
+          if ($blocks.Count -ne 3) { throw 'Expected three PowerShell command blocks' }
+          foreach ($block in $blocks) {
+            $tokens = $null; $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseInput($block.Groups[1].Value, [ref]$tokens, [ref]$errors)
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+      - name: Install build tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends build-essential bc bison flex libelf-dev \
+            libncurses-dev libssl-dev make patch perl python3 git rsync \
+            gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu dwarves
+      - name: Download the immutable hardware-tested Stage 20 bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh run download 39363419356 --repo "$GH_REPO" \
+            --name aurora-stage20-BOOT-CANDIDATE-REQUIRES-PREFLIGHT --dir stage22-input/stage20
+          (cd stage22-input/stage20 && sha256sum -c SHA256SUMS)
+      - name: Prepare pinned kernel and fault-test the actual Monaco probe
+        run: bash stage22/prepare-kernel.sh
+      - name: Compile ARM64 Image with unchanged ARM32 userspace
+        run: |
+          set -euo pipefail
+          bash stage22/build-kernel.sh 2>&1 | tee stage22-build.log
+      - name: Verify linked drivers, unchanged embedded rootfs and boot structure
+        run: |
+          set -euo pipefail
+          python3 stage19/verify_link.py --out stage22-work/out --mode on --output stage22-artifacts/thermal-link-evidence.json
+          python3 stage22/finalize.py
+          python3 scripts/verify_bootimg.py --boot stage22-artifacts/boot-stage22.img \
+            --kernel stage22-work/out/arch/arm64/boot/Image | tee stage22-artifacts/boot-structure.txt
+          cp docs/STAGE22.md stage22-artifacts/README-STAGE22.md
+          cp stage22/WINDOWS-CAPTURE.md stage22/pins.json stage22/0001-monaco-unwind-provider-on-probe-error.patch stage22-artifacts/
+          (cd stage22-artifacts && sha256sum boot-stage22.img rootfs.cpio.gz kernel.config *.json *.md *.patch SOURCES.txt boot-structure.txt > SHA256SUMS)
+      - name: Upload complete candidate
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage22-MONACO-UNWIND-BOOT-CANDIDATE
+          path: stage22-artifacts/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage22-diagnostics
+          path: |
+            stage22-build.log
+            stage22-artifacts/*.json
+            stage22-artifacts/*.txt
+          retention-days: 30
+          if-no-files-found: ignore
