@@ -1,0 +1,50 @@
+--- a/drivers/interconnect/qcom/monaco.c
++++ b/drivers/interconnect/qcom/monaco.c
+@@ -1641,25 +1641,27 @@
+ 		qp->util_factor = DEFAULT_UTIL_FACTOR;
+ 
+ 	qp->regmap = qcom_icc_map(pdev, desc);
+-	if (IS_ERR(qp->regmap))
+-		return PTR_ERR(qp->regmap);
++	if (IS_ERR(qp->regmap)) {
++		ret = PTR_ERR(qp->regmap);
++		goto err_disable_bus;
++	}
+ 
+ 	ret = icc_provider_add(provider);
+ 	if (ret) {
+ 		dev_err(dev, "error adding interconnect provider: %d\n", ret);
+-		clk_bulk_disable_unprepare(qp->num_clks, qp->bus_clks);
+-		return ret;
++		goto err_disable_bus;
+ 	}
+ 
+ 	qp->num_qos_clks = devm_clk_bulk_get_all(dev, &qp->qos_clks);
+-	if (qp->num_qos_clks < 0)
+-		return qp->num_qos_clks;
++	if (qp->num_qos_clks < 0) {
++		ret = qp->num_qos_clks;
++		goto err_del_provider;
++	}
+ 
+ 	ret = clk_bulk_prepare_enable(qp->num_qos_clks, qp->qos_clks);
+ 	if (ret) {
+-		clk_bulk_disable_unprepare(qp->num_clks, qp->bus_clks);
+ 		dev_err(&pdev->dev, "failed to enable QoS clocks\n");
+-		return ret;
++		goto err_del_provider;
+ 	}
+ 
+ 	for (i = 0; i < num_nodes; i++) {
+@@ -1710,8 +1712,10 @@
+ 	}
+ 
+ 	clk_bulk_disable_unprepare(qp->num_qos_clks, qp->qos_clks);
++err_del_provider:
++	icc_provider_del(provider);
++err_disable_bus:
+ 	clk_bulk_disable_unprepare(qp->num_clks, qp->bus_clks);
+-	icc_provider_del(provider);
+ 	return ret;
+ }
+ 
