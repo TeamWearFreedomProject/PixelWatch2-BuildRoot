@@ -4,15 +4,16 @@
 
 Pixel Watch 2 Wi-Fi (`aurora`) 向けの**独立した組み込み Linux**を研究するプロジェクトです。Buildroot で最小 userspace/rootfs（ARM32とARM64の2案）を生成し、将来的に時計・タッチ操作・低消費電力・独自の丸型 UI を実装することを目指します。
 
-**Status: Stage 1 / rootfs build experiment. NOT BOOTABLE. DO NOT FLASH.**
+**Status: Stage 23 / display・input調査。Stage 22は実機でLinux・USBシェル・Fastboot復帰を確認済み。**
 
-**Architecture:** Wear OS/LineageOS の device tree は ARM32 (`armeabi-v7a`) userspaceを指定する一方、argosphil のLinuxカーネルは `CONFIG_ARM64=y`, `CONFIG_COMPAT=y`, `CONFIG_COMPAT_BINFMT_ELF=y`。そのため **32bit rootfsを優先的にCI検証**し、64bit rootfsも別設定として維持します。32bitの実機動作も、64bitが実機では動かないことも、まだ証明されていません。
+**Architecture:** 実機確認済みの候補は ARM64 Linux 5.15.137 + ARM32 musl/BusyBox userspaceです。64bit userspaceの代替設定も保持しますが、その実機動作は未確認です。
 
 - 対象: Google Pixel Watch 2 Wi-Fi / `aurora`
-- 現在手元で使用中と申告されているFW: **TWD9系**（末尾の正確なビルド番号は未確認）
+- 直近の実機Fastboot情報: `aurora`、slot `b`、unlocked `yes`、bootloader `eos-0.4-11366482`。全パーティションのFW版は未確定です。
 - Ubuntu Touchの参考FW: **TWD9.240405.001**（Android 13系）。これは**他のOSの動作保証ではありません**。
-- 現段階の成果物は汎用的な **ARM64 rootfs** のみ。カーネル・DTB/DTBO・起動イメージは同梱しません。
-- GitHub Actionsでの生成物は研究・検証用であり、実機にフラッシュしないでください。
+- 現在の候補は [Stage 22](docs/STAGE22.md) の `boot-stage22.img`。USBシェルと90秒後の復帰要求を備えた診断用イメージです。画面・タッチ・時計UIは未確認です。
+- [Stage 23の手順](stage23/WINDOWS-CAPTURE.md) は、この候補を一時起動して表示・入力情報を取得します。rootfs単体をフラッシュするものではありません。
+- パッケージ管理コマンドは未導入です。ソフトはBuildrootで選択してrootfsへ組み込みます。
 
 ## Stage plan
 
