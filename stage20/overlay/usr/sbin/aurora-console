@@ -1,0 +1,8 @@
+#!/bin/sh
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export HOME=/root TERM=vt100 PS1='aurora-stage20# '
+printf '\r\nAURORA_STAGE20_USB_SHELL\r\n'
+printf 'Physical USB root console; software restart requested after 90s from PID 1.\r\n'
+printf 'No Android storage partitions are mounted. No network services are started.\r\n'
+printf 'Use aurora-info for read-only diagnostics; aurora-return --request to leave.\r\n'
+exec /bin/busybox sh -i

@@ -1,0 +1,47 @@
+#!/bin/sh
+# Dedicated, RAM-only diagnostic PID 1. No Android/Buildroot rc scripts.
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export PATH
+if [ "${1:-}" = --check ]; then
+    [ -x /usr/sbin/aurora-return ] && [ -x /usr/sbin/aurora-acm20 ] || exit 1
+    printf 'AURORA_STAGE20_INIT_CHECK_OK\n'
+    exit 0
+fi
+[ "$$" -eq 1 ] || { echo 'This entry point is only for PID 1' >&2; exit 64; }
+
+# Start the independent deadline before anything that might wait for USB.
+/usr/sbin/aurora-timeout &
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+mkdir -p /run /tmp /dev/pts /sys/kernel/config
+mount -t tmpfs -o mode=0755,nosuid,nodev tmpfs /run
+mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /tmp
+mount -t devpts devpts /dev/pts
+exec </dev/null >/dev/null 2>&1
+if [ -c /dev/kmsg ]; then
+    echo '<6>AURORA_STAGE20_PID1_STARTED: deadline 90 seconds' > /dev/kmsg
+fi
+
+if /usr/sbin/aurora-acm20 > /run/usb-setup.log 2>&1; then
+    [ ! -c /dev/kmsg ] || cat /run/usb-setup.log > /dev/kmsg
+    count=0
+    while [ ! -c /dev/ttyGS0 ] && [ "$count" -lt 10 ]; do
+        sleep 1
+        count=$((count + 1))
+    done
+    if [ -c /dev/ttyGS0 ]; then
+        (
+            while :; do
+                /bin/busybox getty -L -n -l /usr/sbin/aurora-console 115200 ttyGS0 vt100
+                sleep 1
+            done
+        ) &
+    else
+        [ ! -c /dev/kmsg ] || echo '<3>AURORA_STAGE20_NO_TTYGS0' > /dev/kmsg
+    fi
+else
+    [ ! -c /dev/kmsg ] || cat /run/usb-setup.log > /dev/kmsg
+fi
+# Reap children instead of letting PID 1 exit and panic the kernel.
+while :; do wait; sleep 1; done

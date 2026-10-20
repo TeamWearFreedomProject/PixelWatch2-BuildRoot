@@ -1,0 +1,24 @@
+{
+  "stage7_run": 38721433935,
+  "stage19_run": 39348516565,
+  "files": {
+    "stage7": {
+      "boot.img": "750243f3cddbe10b49a4748f451da72136986996af44f05b13944297499c1754",
+      "rootfs.cpio.gz": "525571481a068e65ba9bd8ff130dc0197371346f66d4c8d2368f51611416a847",
+      "kernel.config": "239b4205113fb55c4215683b520028fd61e81f79c457e11390f379098120c405",
+      "SOURCES.txt": "a4d567446078d68943e8ed0592703395eab274668b7e0528dfe855b5e1190769",
+      "SHA256SUMS": "e5dc707ab5379421bf022acf83d4c4c2153f831a51008fd33b0939a0ae73c9e2"
+    },
+    "stage19": {
+      "stage19-artifacts/SHA256SUMS": "94ebd6174dbbdeb1ad0b9b60c5eefac03a0802b660367a729a71996a6610c628",
+      "stage19-artifacts/linked-on.config": "405b3d9b5289eeedf2e8baf8f19f51a1295ef46ca83d7d28512393aedff1e784",
+      "stage19-artifacts/thermal-link-evidence.json": "971a979d04889ef44703a3c9899152625a4061c8a732aa2563ea57c9ce789565"
+    }
+  },
+  "usb_shim": {
+    "repository": "https://android.googlesource.com/kernel/google-modules/soc/msm",
+    "revision": "7a2cd1649e49373ca24bd81d4fe89e7440db4ab5",
+    "path": "usb_shim/google-extcon-usb-shim.c",
+    "sha256": "f5024f2ce3e504a227098768d6fcb29a2ba2a0cd138e78c3225eda3997cdf1c2"
+  }
+}
