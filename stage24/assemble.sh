@@ -26,7 +26,12 @@ cp "$WORK/sources.json" "$ROOTFS/etc/aurora-stage24-sources.json"
 cp "$WORK/sources.json" "$OUT/sources.json"
 SIZE=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["target"]["system_partition_size"])' "$WORK/sources.json")
 truncate -s "$SIZE" "$OUT/ubuntu.img"
-mke2fs -q -t ext4 -F -b 4096 -m 0 -O '^metadata_csum,^orphan_file' -d "$ROOTFS" "$OUT/ubuntu.img"
+mke2fs -q -t ext4 -F -b 4096 -m 0 -O '^metadata_csum' -d "$ROOTFS" "$OUT/ubuntu.img"
+# e2fsprogs 1.46 (Ubuntu 22.04) does not recognize even ^orphan_file.
+# Newer hosts may enable it by default; disable it only when actually present.
+if dumpe2fs -h "$OUT/ubuntu.img" 2>/dev/null | grep -qw orphan_file; then
+    tune2fs -O '^orphan_file' "$OUT/ubuntu.img"
+fi
 e2fsck -fn "$OUT/ubuntu.img"
 python3 "$PROJECT/stage24/audit.py" rootfs "$OUT/ubuntu.img" --output "$OUT/audit.json"
 cp "$PROJECT/docs/STAGE24.md" "$OUT/README-STAGE24.md"
