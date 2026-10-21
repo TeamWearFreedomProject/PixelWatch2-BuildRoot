@@ -30,3 +30,7 @@
 __pycache__/
 /stage25-work/
 /stage25-artifacts/
+
+/stage26-work/
+/stage26-artifacts/
+/stage26-build.log

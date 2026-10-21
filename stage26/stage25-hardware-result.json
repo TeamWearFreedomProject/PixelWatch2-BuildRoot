@@ -1,0 +1,16 @@
+{
+  "stage": 25,
+  "reported_date_jst": "2026-10-21",
+  "boot_image_sha256": "597a4ca0736b52cc32bc959a57e8e3fd83c4552aaeffc2480ac00d6167a9860c",
+  "source_of_hash": "published Stage25 candidate; user did not submit a new on-PC hash",
+  "observations": {
+    "com_port_enumerated": false,
+    "automatic_fastboot_after_90_seconds": false,
+    "forced_reboot_returned_to_fastboot": true
+  },
+  "diagnostic_pid1_execution_confirmed": false,
+  "kernel_hang_confirmed": false,
+  "root_cause_confirmed": false,
+  "hypothesis": "External ramdisk handoff or earlier kernel boot failure; cannot isolate from observations alone",
+  "next_change": "Embed static PID1, deadline, BusyBox and scripts in kernel; verify final linkage and VM execution"
+}
