@@ -4,7 +4,9 @@
 
 Pixel Watch 2 Wi-Fi (`aurora`) 向けの**独立した組み込み Linux**を研究するプロジェクトです。Buildroot で最小 userspace/rootfs（ARM32とARM64の2案）を生成し、将来的に時計・タッチ操作・低消費電力・独自の丸型 UI を実装することを目指します。
 
-**Status: Stage 24 / Ubuntu TouchをGitLabから取得してGitHub Actionsでビルドする構成へ移行中。** [Stage 24](docs/STAGE24.md) はARM32のUbuntuホストrootfs（apt/dpkg）とARM64カーネルを生成します。Aurora UIの基盤としてRWのrootfsを用意します。
+**Status: Stage 25 / USB復旧 → Aurora UI → スピーカー無効化。** [Stage 25](docs/STAGE25.md) はStage24のUTカーネルを使うRAM上のCDC ACM診断と90秒のソフトウェア復帰タイマーを用意します。実機のUSB復旧はまだ未確認です。
+
+[Stage 24](docs/STAGE24.md) のGitHubビルドは成功し、ARM32のUbuntuホストrootfs（apt/dpkg）とARM64カーネルを生成済みです。
 
 Stage 23までのBuildroot調査も保持しています。Stage 22は実機でLinux・USBシェル・Fastboot復帰を確認済みですが、Stage 24のUT成果物の実機動作は未確認です。
 

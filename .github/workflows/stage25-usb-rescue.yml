@@ -1,0 +1,38 @@
+name: Stage 25 - USB before UI
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage25-usb-rescue.yml'
+      - 'stage25/**'
+      - 'docs/STAGE25.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: stage25-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  usb-diagnostic:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install packaging and harmless ARM64 validation tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu libc6-dev-arm64-cross qemu-user lz4
+      - name: Validate descriptors, refusal paths and image bounds
+        run: |
+          bash -n stage25/build.sh
+          for f in stage25/overlay/aurora-stage25-init stage25/overlay/usr/sbin/*; do sh -n "$f"; done
+          python3 -m unittest discover -s stage25 -p 'test_*.py' -v
+      - name: Package unchanged UT kernel with RAM diagnostic
+        run: bash stage25/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage25-UT-KERNEL-USB-DIAGNOSTIC
+          path: stage25-artifacts/
+          retention-days: 30
+          if-no-files-found: error

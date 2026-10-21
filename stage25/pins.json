@@ -1,0 +1,11 @@
+{
+  "stage24_commit": "5c50d50d1fb131c65fc80c3a56284f3a081bbc87",
+  "stage24_run": 39518524141,
+  "artifact_id": 12311102716,
+  "artifact_url": "https://nightly.link/TeamWearFreedomProject/PixelWatch2-BuildRoot/actions/artifacts/12311102716.zip",
+  "artifact_sha256": "48e34e21d837480062bcae78a7dfeff4f61a6375f46aaff40ee1f39b766d3de6",
+  "boot_sha256": "7fe796928e484066c979c1ddd8df65e7ccfebe2643c1cd1d807f67fffd1dbf08",
+  "init_boot_sha256": "f03f1e4be5c2606ed9d1aeec54a4a3977825f1bfb3a820251d198c087b4b3c81",
+  "kernel_sha256": "589c46cc5d6c01f215322594f7aabfb6c9c52e53e1d7f82ef711d532a3e683b1",
+  "upstream_port": "d2b4512ed1758b5ad73118cd311e2fca32f39cf5"
+}

@@ -1,0 +1,48 @@
+#!/bin/sh
+set -eu
+R=${AURORA_TEST_ROOT:-}
+if [ -n "$R" ]; then
+    [ "$R" != / ] && [ -f "$R/.aurora-test-root" ] || exit 64
+    LIMIT=0
+else
+    LIMIT=70
+fi
+count=0
+while :; do
+    set -- "$R"/sys/class/udc/*
+    if [ -e "$1" ]; then
+        [ "$#" -eq 1 ] || { echo 'Multiple UDCs; not guessing' >&2; exit 3; }
+        UDC=${1##*/}
+        break
+    fi
+    [ "$count" -lt "$LIMIT" ] || { echo 'No UDC within deadline' >&2; exit 2; }
+    sleep 1
+    count=$((count+1))
+done
+CFG="$R/sys/kernel/config"
+if [ -z "$R" ] && ! grep -q ' /sys/kernel/config configfs ' /proc/mounts; then
+    mount -t configfs configfs "$CFG"
+fi
+# Refuse to steal a controller from an existing gadget.
+for f in "$CFG"/usb_gadget/*/UDC; do
+    [ ! -f "$f" ] || [ -z "$(cat "$f")" ] || { echo "UDC already owned: $f" >&2; exit 4; }
+done
+G="$CFG/usb_gadget/aurora_stage25"
+mkdir -p "$G"
+# Same development VID/PID and CDC class tuple as the COM5-tested Stage 22.
+echo 0x1d6b > "$G/idVendor"
+echo 0x0104 > "$G/idProduct"
+echo 0x0200 > "$G/bcdUSB"
+echo 0x02 > "$G/bDeviceClass"
+echo 0x02 > "$G/bDeviceSubClass"
+echo 0x01 > "$G/bDeviceProtocol"
+mkdir -p "$G/strings/0x409" "$G/configs/c.1/strings/0x409" "$G/functions/acm.GS0"
+echo 'Aurora development' > "$G/strings/0x409/manufacturer"
+echo 'PW2 Stage25 UT-kernel USB diagnostic' > "$G/strings/0x409/product"
+echo 'AURORA-STAGE25' > "$G/strings/0x409/serialnumber"
+echo 'CDC ACM rescue' > "$G/configs/c.1/strings/0x409/configuration"
+echo 0xC0 > "$G/configs/c.1/bmAttributes"
+echo 2 > "$G/configs/c.1/MaxPower"
+ln -s "$G/functions/acm.GS0" "$G/configs/c.1/acm.GS0"
+echo "$UDC" > "$G/UDC"
+echo "AURORA_STAGE25_UDC_BOUND $UDC"
