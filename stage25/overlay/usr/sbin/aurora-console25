@@ -1,0 +1,5 @@
+#!/bin/sh
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+export PS1='aurora-stage25# '
+printf '\r\nAURORA_STAGE25_USB_SHELL\r\nUT Stage24 kernel / RAM-only USB diagnostic.\r\n90-second software return timer remains active.\r\nRun aurora-info25 for logs; aurora-return --request to return.\r\n'
+exec /bin/sh -i

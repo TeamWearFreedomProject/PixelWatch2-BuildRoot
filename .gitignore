@@ -28,3 +28,5 @@
 /stage24-artifacts/
 /stage24-*.log
 __pycache__/
+/stage25-work/
+/stage25-artifacts/

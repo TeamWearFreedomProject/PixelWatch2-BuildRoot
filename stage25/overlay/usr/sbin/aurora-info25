@@ -1,0 +1,20 @@
+#!/bin/sh
+printf '\nAURORA_STAGE25_BEGIN\n'
+uname -a
+cat /proc/uptime /proc/cmdline
+[ ! -r /proc/bootconfig ] || cat /proc/bootconfig
+printf '\nMODULE_SETUP\n'; cat /run/modules.log /run/acm.log /run/pid1.log
+printf '\nUDC\n'
+for d in /sys/class/udc/*; do
+    [ -e "$d" ] || continue
+    echo "$d"
+    for a in state current_speed maximum_speed; do [ ! -r "$d/$a" ] || { printf '%s=' "$a"; cat "$d/$a"; }; done
+done
+printf '\nUSB_GATE\n'
+for p in /sys/devices/platform/soc/soc:extcon_usb_shim/force_disable /sys/bus/platform/devices/soc:extcon_usb_shim/force_disable; do [ ! -r "$p" ] || { echo "$p"; cat "$p"; }; done
+printf '\nUSB_GADGET\n'
+for f in /sys/kernel/config/usb_gadget/*/UDC; do [ ! -r "$f" ] || { echo "$f"; cat "$f"; }; done
+printf '\nMODULES\n'; cat /proc/modules
+printf '\nMOUNTS\n'; cat /proc/mounts
+printf '\nAURORA_STAGE25_DMESG_BEGIN\n'; dmesg
+printf '\nAURORA_STAGE25_DMESG_END\nAURORA_STAGE25_END\n'

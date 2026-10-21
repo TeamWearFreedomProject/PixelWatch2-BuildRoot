@@ -1,0 +1,60 @@
+#!/bin/sh
+# Exclusive RAM diagnostic PID 1; never calls Halium mountroot or switch_root.
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+export PATH
+[ "$$" -eq 1 ] || { echo 'PID 1 only' >&2; exit 64; }
+# Start before module probing, UDC waits, or serial setup. Software timer only.
+( /bin/busybox sleep 90; /usr/sbin/aurora-return --request ) &
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+mkdir -p /run /tmp /dev/pts /sys/kernel/config
+mount -t tmpfs -o mode=0755,nosuid,nodev tmpfs /run
+mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /tmp
+mount -t devpts devpts /dev/pts
+exec </dev/null >/run/pid1.log 2>&1
+echo '<6>AURORA_STAGE25_PID1: RAM diagnostic, 90s software deadline' > /dev/kmsg
+# The bootloader supplies vendor modules from the active slot. Never copy a
+# different release's .ko into this kernel or force an ABI/signature mismatch.
+mkdir -p /lib/modules
+KREL=$(uname -r)
+[ -e "/lib/modules/$KREL" ] || ln -s . "/lib/modules/$KREL"
+# Configure ACM as soon as a UDC appears, even if a later probe stalls.
+(
+    /usr/sbin/aurora-acm25 > /run/acm.log 2>&1 || exit
+    n=0
+    while [ ! -c /dev/ttyGS0 ] && [ "$n" -lt 5 ]; do sleep 1; n=$((n+1)); done
+    [ -c /dev/ttyGS0 ] || exit 1
+    while :; do
+        /bin/busybox getty -L -n -l /usr/sbin/aurora-console25 115200 ttyGS0 vt100
+        sleep 1
+    done
+) &
+(
+    echo "KERNEL_RELEASE=$KREL"
+    echo 'VENDOR_MODULE_METADATA'
+    ls -la /lib/modules
+    clear_usb_gate() {
+    for p in /sys/devices/platform/soc/soc:extcon_usb_shim/force_disable /sys/bus/platform/devices/soc:extcon_usb_shim/force_disable; do
+        if [ -e "$p" ]; then
+            echo "USB_GATE_BEFORE=$p $(cat "$p")"
+            echo 0 > "$p"
+            echo "USB_GATE_STATUS=$? $p $(cat "$p")"
+        fi
+    done
+    }
+    # Match the working Asteroid init's explicit parameter, without claiming
+    # its absence was the cause: the reviewed source default is already false.
+    modprobe -v google-extcon-usb-shim usb_force_disable_boot=0
+    echo "SHIM_STATUS=$?"
+    clear_usb_gate
+    while IFS= read -r m; do
+        case "$m" in ''|\#*) continue ;; esac
+        echo "MODULE_BEGIN=$m"
+        modprobe -v "${m%.ko}"
+        echo "MODULE_STATUS=$? $m"
+    done < /etc/aurora-stage25.modules
+    clear_usb_gate
+    echo MODULE_PROBING_FINISHED
+) > /run/modules.log 2>&1 &
+while :; do wait; sleep 1; done
