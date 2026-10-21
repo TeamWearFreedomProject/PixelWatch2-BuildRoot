@@ -25,7 +25,8 @@ USB設定だけの問題とは断定しない。外付けramdiskの受け渡し�
   その実機でのモジュール互換性はまだ未確認。
 
 カーネルの生成済み`.config`だけを変更し、固定したカーネルソース自体は編集しない。
-Stage24設定との差分はinitramfsと専用cmdlineに限定して検査し、kernel releaseも照合する。
+Stage24設定との差分はinitramfsと専用cmdlineに限定して、コンパイル前と配布前の両方で検査し、kernel releaseも照合する。
+staticヘルパーは別ジョブで生成し、ARM64 libc開発用sysrootがカーネルの自動判定へ影響しないよう分離する。
 汎用ビルドツールへ挿入する設定フックは`stage26/hook.py`で明示する。
 
 ## 配布前の実行検証
@@ -34,6 +35,8 @@ Stage24設定との差分はinitramfsと専用cmdlineに限定して検査し、
 外付けの`/init`と`/bin/sh`には意図的に競合するファイルを与え、専用PID1とシェルの起動、
 実際の90秒タイマー、再起動要求、仮想マシンの再起動による終了を確認する。
 この検証に失敗した場合、実機用artifactの公開ステップへ進まない。
+`CI-INPUT` / `UNTESTED`と付いたartifactはビルド・デバッグ用であり、実機手順の対象は
+`aurora-stage26-EMBEDDED-USB-DIAGNOSTIC`だけ。
 
 **QEMUで検証できるのは起動処理・タイマーまで。WatchのUSB、vendor modules、
 Fastboot復帰の実機動作を証明するものではない。** ハードウェアwatchdogではないため、

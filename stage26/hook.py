@@ -9,7 +9,8 @@ def patch(text):
     if text.count(needle)!=1:raise ValueError('Unexpected upstream builder shape')
     return text.replace(needle,needle+
         '/usr/bin/python3 "$AURORA_STAGE26_PROJECT/stage26/configure.py" "$OUT/.config" "$AURORA_STAGE26_INITRAMFS"\n'
-        'make O="$OUT" $MAKEOPTS olddefconfig\n')
+        'make O="$OUT" $MAKEOPTS olddefconfig\n'
+        '/usr/bin/python3 "$AURORA_STAGE26_PROJECT/stage26/verify_config.py" "$AURORA_STAGE26_BASELINE" "$OUT/.config"\n')
 
 
 if __name__=='__main__':
