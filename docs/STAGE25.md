@@ -14,7 +14,9 @@ Ubuntu Touch全体を起動するイメージではなく、USB復旧を切り�
 - Haliumのベースinitramfsを保ち、診断用PID1を追加する。
 - `/init`と専用の`/aurora-stage25-init`を診断用にし、rdinitも明示する。
 - boot v4のカーネル＋ramdiskを1個の一時起動イメージにまとめる。
-  この端末での組み合わせの受け入れは未検証。拒否された場合は出力を記録して止める。
+  この端末には一時起動でramdiskが正しく渡らないという先行調査がある。
+  専用rdinitで`/init`の上書きを避けるが、ramdisk自体が渡るかは未検証。
+  拒否・起動しない場合は出力を記録して止め、次はカーネル内蔵initramfs方式を検討する。
 - 機種専用モジュールはブートローダーが供給する現在のスロットのものを使う。
   Asteroidの`.ko`を混ぜたり、バージョン・署名検査を強制回避したりしない。
 - upstreamと同じモジュール一覧を使い、読み込み成否をRAMに記録する。
@@ -65,3 +67,5 @@ Aurora UIとスピーカー無効化はその後に進める。
 - [UT port](https://gitlab.com/ubports/porting/community-ports/android13/google-eos/google-eos/-/tree/d2b4512ed1758b5ad73118cd311e2fca32f39cf5)
 - [Android vendor bootとramdiskの構成](https://source.android.com/docs/core/architecture/partitions/vendor-boot-partitions)
 - [Linux ACM gadget](https://docs.kernel.org/usb/gadget-testing.html)
+
+- [Pixel Watch 2の先行調査・bootloader issues](https://github.com/argosphil/aurora#bootloader-issues)

@@ -160,6 +160,7 @@ def prepare(source, helper_path, out):
               'vendor_modules': 'bootloader-supplied active-slot modules only; not bundled or forced',
               'rootfs_mounted_by_diagnostic': False, 'software_deadline_seconds': 90,
               'hardware_watchdog': False, 'bootloader_acceptance_tested': False,
+              'known_device_issue': 'Temporary-boot ramdisk handoff is unreliable in prior aurora research; unique rdinit is experimental',
               'usb_enumeration_tested': False, 'ut_runtime_usb_recovered': False,
               'speaker_disabled': False, 'flash_supported': False,
               'timer_limitation': 'Only starts if diagnostic PID1 runs; cannot recover a kernel/bootloader hang'}

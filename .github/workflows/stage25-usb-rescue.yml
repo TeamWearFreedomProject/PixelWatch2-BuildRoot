@@ -22,7 +22,7 @@ jobs:
       - name: Install packaging and harmless ARM64 validation tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu qemu-user lz4
+          sudo apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu libc6-dev-arm64-cross qemu-user lz4
       - name: Validate descriptors, refusal paths and image bounds
         run: |
           bash -n stage25/build.sh

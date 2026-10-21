@@ -85,6 +85,7 @@ if ((Get-FileHash .\\boot-stage25-usb.img -Algorithm SHA256 -ErrorAction Stop).H
 `stage25-usb.log`と「COMが出たか」「Fastbootに戻ったか」を返す。
 画面は診断に使わない。flash・erase・set_activeは行わない。
 90秒タイマーはソフトウェアによるもので、PID1に到達しない場合やカーネル停止時には効かない。
+この機種では一時起動のramdisk受け渡しに既知の問題があり、専用rdinitを指定した今回の方式も実機未検証。
 通常のStage24 UTイメージには、このタイマーは入っていない。
 '''.replace('IMAGE_SHA', sha)
 
