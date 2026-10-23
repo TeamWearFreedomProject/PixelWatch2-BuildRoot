@@ -76,16 +76,5 @@ Item {
             compare(window.height, 384)
             window.destroy()
         }
-        function test_zz_screenshots() {
-            shell.previewTime = true
-            var pages = ["clock", "apps", "stopwatch", "style", "timer", "calculator"]
-            for (var i=0;i<pages.length;i++) {
-                shell.openPage(pages[i]); wait(100)
-                var shot = grabImage(shell)
-                compare(shot.width, 384)
-                compare(shot.height, 384)
-                shot.save("stage27-artifacts/" + pages[i] + ".png")
-            }
-        }
     }
 }

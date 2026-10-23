@@ -29,7 +29,7 @@ jobs:
             2>&1 | tee stage27-artifacts/setup.log
           timeout 300 sudo apt-get -o Acquire::http::Timeout=20 \
             -o Acquire::https::Timeout=20 -o Acquire::Retries=2 \
-            install -y --no-install-recommends e2fsprogs \
+            install -y --no-install-recommends e2fsprogs cmake qt6-base-dev qt6-declarative-dev \
             qtdeclarative5-dev-tools qml-module-qtquick2 qml-module-qtquick-window2 \
             qml-module-qttest qt6-declarative-dev-tools qt6-qpa-plugins qml6-module-qtquick \
             qml6-module-qtquick-window qml6-module-qttest qml6-module-qtqml \
@@ -46,6 +46,14 @@ jobs:
             -o stage27-artifacts/qml-tests-qt5.txt,txt -o -,txt
           timeout 90 xvfb-run -a /usr/lib/qt6/bin/qmltestrunner -input stage27/tests \
             -o stage27-artifacts/qml-tests-qt6.txt,txt -o -,txt
+      - name: Build Qt 6 entry point and capture complete windows
+        env:
+          QT_QUICK_BACKEND: software
+        run: |
+          cmake -S stage27/native -B stage27-work/native -DCMAKE_BUILD_TYPE=Release
+          cmake --build stage27-work/native --parallel 2
+          timeout 30 xvfb-run -a stage27-work/native/aurora-preview \
+            --capture-dir "$PWD/stage27-artifacts"
       - name: Package standalone preview and verify manifest
         run: |
           python3 stage27/package_preview.py stage27-artifacts

@@ -50,8 +50,11 @@ QtQuick.Windowだけを使用し、独自のCanvasアイコンを描きます。
 
 Wi-Fi/Bluetooth/健康データの架空の状態表示や通信トグルは用意しません。
 既存AsteroidOSのアプリ起動、通知、表冠、画面消灯や復帰との統合は次の段階です。
-Qt Quick Testで画面遷移・計時・電卓・設定変更を検査し、デスクトップの
-ソフトウェア描画でPNGを生成します。実機上の表示・速度は別途確認が必要です。
+Qt Quick Testで画面遷移・計時・電卓・設定変更を検査します。
+Qt6の独立C++起動プログラムもデスクトップ向けにビルドし、ウィンドウ全体から
+PNGを生成します。部品だけを取得するgrabImageでは、一部の戻るボタンが画像に
+欠ける現象があったため、最終画像は実ウィンドウのgrabWindowで取得します。
+実機上の表示・速度は別途確認が必要です。
 
 ## 最初に実機から読み取る情報
 
@@ -86,7 +89,19 @@ QT_QUICK_BACKEND=software qmltestrunner -input stage27/tests
 qmlscene stage27/qml/Main.qml
 ```
 
-配布ZIPはQMLと説明書・照合情報だけです。boot/rootfsイメージは含みません。
+Qt6では`qmlscene`の代わりに同梱C++の起動プログラムをビルドできます。
+
+```sh
+cmake -S stage27/native -B stage27-work/native
+cmake --build stage27-work/native
+stage27-work/native/aurora-preview
+```
+
+これはビルドした環境向けの実行ファイルです。CIで生成したx86_64バイナリーを
+ARM32の時計へ転送しません。実機用には対応するSDKでのクロスビルドが必要です。
+
+配布ZIPはQML・C++起動プログラムのソース・説明書・照合情報です。
+boot/rootfsイメージやビルド済みの実行ファイルは含みません。
 フラッシュ、パーティション変更、Stage26の再試行は必要ありません。
 GitHubでのOS全体の再ビルドもこの段階では行いません。
 

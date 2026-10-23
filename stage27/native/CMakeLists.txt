@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(aurora_preview LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
+add_executable(aurora-preview main.cpp)
+target_link_libraries(aurora-preview PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick)
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/../qml" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

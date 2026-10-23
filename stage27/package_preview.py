@@ -15,6 +15,9 @@ archive = out / 'aurora-stage27-qml-preview.zip'
 with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as bundle:
     for source in sorted((repo / 'stage27/qml').glob('*.qml')):
         bundle.write(source, 'aurora-stage27/' + source.name)
+    for source in sorted((repo / 'stage27/native').iterdir()):
+        if source.is_file():
+            bundle.write(source, 'native-source/' + source.name)
     bundle.write(repo / 'docs/STAGE27.md', 'README-STAGE27.md')
     bundle.write(repo / 'stage27/v1-pins.json', 'v1-pins.json')
     bundle.write(out / 'v1-baseline.json', 'v1-baseline.json')

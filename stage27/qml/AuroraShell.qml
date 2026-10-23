@@ -2,6 +2,7 @@ import QtQuick 2.12
 
 Rectangle {
     id: root
+    objectName: "auroraShell"
     width: 384
     height: 384
     color: "black"
