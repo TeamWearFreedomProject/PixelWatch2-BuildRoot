@@ -1,5 +1,5 @@
-import QtQuick
-import QtTest
+import QtQuick 2.12
+import QtTest 1.2
 import "../qml" as UI
 
 Item {
