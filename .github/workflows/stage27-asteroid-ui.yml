@@ -20,13 +20,21 @@ jobs:
         with:
           persist-credentials: false
       - name: Install read-only image and Qt Quick test tools
+        timeout-minutes: 12
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends e2fsprogs \
+          set -euo pipefail
+          mkdir -p stage27-artifacts
+          timeout 300 sudo apt-get -o Acquire::http::Timeout=20 \
+            -o Acquire::https::Timeout=20 -o Acquire::Retries=2 update -qq \
+            2>&1 | tee stage27-artifacts/setup.log
+          timeout 300 sudo apt-get -o Acquire::http::Timeout=20 \
+            -o Acquire::https::Timeout=20 -o Acquire::Retries=2 \
+            install -y --no-install-recommends e2fsprogs \
             qtdeclarative5-dev-tools qml-module-qtquick2 qml-module-qtquick-window2 \
             qml-module-qttest qt6-declarative-dev-tools qml6-module-qtquick \
             qml6-module-qtquick-window qml6-module-qttest qml6-module-qtqml \
-            qml6-module-qtqml-models qml6-module-qtqml-workerscript xvfb xauth fonts-noto-cjk
+            qml6-module-qtqml-models qml6-module-qtqml-workerscript xvfb xauth fonts-noto-cjk \
+            2>&1 | tee -a stage27-artifacts/setup.log
       - name: Verify all pinned V1 assets and inspect rootfs without mounting
         run: python3 stage27/audit_v1.py stage27-work/v1 stage27-artifacts
       - name: Exercise UI interactions and render 384-pixel previews
@@ -34,9 +42,9 @@ jobs:
           QT_QUICK_BACKEND: software
           QT_LOGGING_RULES: 'qt.qpa.xcb.warning=false'
         run: |
-          xvfb-run -a /usr/lib/qt5/bin/qmltestrunner -input stage27/tests \
+          timeout 90 xvfb-run -a /usr/lib/qt5/bin/qmltestrunner -input stage27/tests \
             -o stage27-artifacts/qml-tests-qt5.txt,txt -o -,txt
-          xvfb-run -a /usr/lib/qt6/bin/qmltestrunner -input stage27/tests \
+          timeout 90 xvfb-run -a /usr/lib/qt6/bin/qmltestrunner -input stage27/tests \
             -o stage27-artifacts/qml-tests-qt6.txt,txt -o -,txt
       - name: Package standalone preview and verify manifest
         run: |
