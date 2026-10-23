@@ -110,16 +110,6 @@ Rectangle {
             NumberAnimation { target: content; property: "opacity"; from: root.motion ? 0 : 1; to: 1; duration: root.motion ? 190 : 0 }
             NumberAnimation { target: content; property: "scale"; from: root.motion ? 0.94 : 1; to: 1; duration: root.motion ? 230 : 0; easing.type: Easing.OutCubic }
         }
-        RoundButton {
-            objectName: "backButton"
-            z: 10
-            x: 168; y: 18; width: 48; height: 40
-            glyph: "back"; fill: root.page === "light" ? "#d5d8db" : "#17191c"
-            ink: root.page === "light" ? "black" : "#c6cbd1"
-            visible: root.page !== "clock" && root.page !== "apps"
-            motion: root.motion
-            onClicked: root.openPage("apps")
-        }
     }
     Component {
         id: clockPage
@@ -151,7 +141,8 @@ Rectangle {
     }
     Component {
         id: stopwatchPage
-        Item {
+        AppPage {
+            shell: root
             Text { anchors.horizontalCenter: parent.horizontalCenter; y: 83; text: "ストップウォッチ"; color: "#a3aab2"; font.pixelSize: 18 }
             Text { anchors.horizontalCenter: parent.horizontalCenter; y: 141; text: root.formatDuration(root.stopwatchElapsed, true); color: "white"; font.pixelSize: 48; font.weight: Font.DemiBold; font.family: "monospace" }
             RoundButton { objectName: "stopwatchToggle"; x: 61; y: 234; width: 128; height: 52; text: root.stopwatchRunning ? "停止" : "開始"; fill: root.accent; ink: "#10180b"; motion: root.motion; onClicked: root.stopwatchToggle() }
@@ -161,7 +152,8 @@ Rectangle {
     }
     Component {
         id: timerPage
-        Item {
+        AppPage {
+            shell: root
             Text { anchors.horizontalCenter: parent.horizontalCenter; y: 80; text: "タイマー"; color: "#a3aab2"; font.pixelSize: 18 }
             Text { anchors.horizontalCenter: parent.horizontalCenter; y: 118; text: root.timerFinished ? "終了" : root.formatDuration(root.timerRemaining * 1000, false); color: root.timerFinished ? root.accent : "white"; font.pixelSize: 60; font.weight: Font.Bold }
             Row {
@@ -177,7 +169,8 @@ Rectangle {
     }
     Component {
         id: calculatorPage
-        Item {
+        AppPage {
+            shell: root
             RoundButton { x: 74; y: 73; width: 40; height: 36; text: "C"; motion: root.motion; onClicked: root.calculate("C") }
             Text { x: 124; y: 70; width: 169; height: 42; horizontalAlignment: Text.AlignRight; text: root.calculation; color: "white"; font.pixelSize: 31; fontSizeMode: Text.Fit; minimumPixelSize: 17 }
             Grid {
@@ -196,11 +189,16 @@ Rectangle {
     }
     Component {
         id: lightPage
-        Rectangle { color: "#ffffff"; Text { anchors.horizontalCenter: parent.horizontalCenter; y: 290; text: "戻るボタンで終了"; color: "#666b70"; font.pixelSize: 15 } }
+        AppPage {
+            shell: root
+            Rectangle { anchors.fill: parent; color: "#ffffff" }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; y: 290; text: "戻るボタンで終了"; color: "#666b70"; font.pixelSize: 15 }
+        }
     }
     Component {
         id: stylePage
-        Item {
+        AppPage {
+            shell: root
             Text { anchors.horizontalCenter: parent.horizontalCenter; y: 80; text: "見た目"; color: "white"; font.pixelSize: 25; font.weight: Font.DemiBold }
             Rectangle {
                 x: 62; y: 127; width: 260; height: 92; radius: 28; color: "#191c20"
@@ -223,7 +221,8 @@ Rectangle {
     }
     Component {
         id: aboutPage
-        Item {
+        AppPage {
+            shell: root
             Text { anchors.horizontalCenter: parent.horizontalCenter; y: 92; text: "Aurora UI"; color: root.accent; font.pixelSize: 36; font.weight: Font.Bold }
             Text { anchors.horizontalCenter: parent.horizontalCenter; y: 145; text: "Stage 27 · Preview 1"; color: "#b0b8c0"; font.pixelSize: 16 }
             Rectangle {
