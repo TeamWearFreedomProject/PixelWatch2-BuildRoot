@@ -1,0 +1,55 @@
+name: Stage 27 - AsteroidOS baseline and Aurora UI
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage27-asteroid-ui.yml'
+      - 'stage27/**'
+      - 'docs/STAGE27.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: stage27-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  baseline-and-preview:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install read-only image and Qt Quick test tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends e2fsprogs \
+            qtdeclarative5-dev-tools qml-module-qtquick2 qml-module-qtquick-window2 \
+            qml-module-qttest xvfb xauth fonts-noto-cjk
+      - name: Verify all pinned V1 assets and inspect rootfs without mounting
+        run: python3 stage27/audit_v1.py stage27-work/v1 stage27-artifacts
+      - name: Exercise UI interactions and render 384-pixel previews
+        env:
+          QT_QUICK_BACKEND: software
+          QT_LOGGING_RULES: 'qt.qpa.xcb.warning=false'
+        run: |
+          xvfb-run -a qmltestrunner -input stage27/tests \
+            -o stage27-artifacts/qml-tests.txt,txt -o -,txt
+      - name: Package standalone preview and verify manifest
+        run: |
+          python3 stage27/package_preview.py stage27-artifacts
+          cd stage27-artifacts
+          sha256sum -c SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage27-QML-PREVIEW
+          path: stage27-artifacts/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Save reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage27-FAILURE-REPORTS
+          path: stage27-artifacts/
+          retention-days: 30
+          if-no-files-found: ignore
