@@ -12,7 +12,7 @@ Stage25/26はどちらも実機でCOMなし・自動Fastboot復帰なしでし�
 
 Stage 23までのBuildroot調査も保持しています。Stage 22は実機でLinux・USBシェル・Fastboot復帰を確認済みですが、Stage 24のUT成果物の実機動作は未確認です。
 
-**Architecture:** 現在のAsteroidOS V1ではARM64 Linux 5.15.144が実機起動しています。userspaceの32/64bitやQt版はV1解析と実機の読み取りで確認します。以前のStage22はARM64 Linux 5.15.137 + ARM32 musl/BusyBoxの診断環境でした。
+**Architecture:** 現在のAsteroidOSではARM64 Linux 5.15.144が実機起動しています。公開V1のrootfs解析ではARM32のパッケージ構成とQt 6.11.3を確認しました。現在の実機userspaceとの一致は読み取りで確認します。以前のStage22はARM64 Linux 5.15.137 + ARM32 musl/BusyBoxの診断環境でした。
 
 - 対象: Google Pixel Watch 2 Wi-Fi / `aurora`
 - 以前の実機Fastboot情報: `aurora`、slot `b`、unlocked `yes`、bootloader `eos-0.4-11366482`。現在のV1環境では再確認していません。全パーティションのFW版は未確定です。

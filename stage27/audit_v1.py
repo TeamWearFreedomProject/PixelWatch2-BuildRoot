@@ -121,11 +121,23 @@ def audit(work, out):
         if re.search(r'asteroid-launcher|qml-asteroid|qtbase|qtdeclarative|qtquick|qtwayland|qmlscene|lipstick|font', fields.get('Package', '')):
             packages.append({key: fields.get(key) for key in ('Package', 'Version', 'Architecture', 'Status')})
     report['selected_packages'] = packages
+    launcher = work / 'asteroid-launcher.elf'
+    subprocess.run(['debugfs', '-R', 'dump /usr/bin/asteroid-launcher ' + str(launcher), str(root)],
+                   check=True, capture_output=True, timeout=40)
+    with launcher.open('rb') as source:
+        elf = source.read(64)
+    if elf[:6] != b'\x7fELF\x01\x01' or struct.unpack_from('<H', elf, 18)[0] != 40:
+        raise ValueError('Expected little-endian ARM32 launcher in pinned V1')
+    report['launcher_elf'] = {'bits': 32, 'machine': 'ARM', 'executed': False}
     report['runtime_candidates'] = {path: fs.resolve(path) for path in (
         '/usr/bin/qmlscene', '/usr/bin/qml', '/usr/bin/asteroid-launcher',
-        '/usr/bin/qt5/qmlscene', '/usr/lib/qt5/bin/qmlscene')}
+        '/usr/bin/qt5/qmlscene', '/usr/lib/qt5/bin/qmlscene',
+        '/usr/libexec/qt6/qml', '/usr/bin/qml6', '/usr/bin/qml-asteroid',
+        '/usr/bin/asteroid-qmlrunner')}
+    report['related_executables'] = [name for name in fs.listing('/usr/bin')
+                                     if re.search(r'asteroid|qml|invoker|runuser', name)]
     report['qml_directories'] = {path: fs.listing(path) for path in (
-        '/usr/lib/qt5/qml', '/usr/lib/qml', '/usr/share/asteroid-launcher',
+        '/usr/lib/qt5/qml', '/usr/lib/qml', '/usr/lib/qt6/qml', '/usr/share/asteroid-launcher',
         '/usr/share/asteroid-launcher/watchfaces')}
     services = {}
     for directory in ('/usr/lib/systemd/user', '/lib/systemd/user', '/usr/lib/systemd/system', '/lib/systemd/system'):

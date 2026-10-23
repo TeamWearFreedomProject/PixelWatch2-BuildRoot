@@ -1,5 +1,5 @@
-import QtQuick 2.12
-import QtTest 1.2
+import QtQuick
+import QtTest
 import "../qml" as UI
 
 Item {
@@ -66,6 +66,15 @@ Item {
             shell.openPage("style")
             mouseClick(findChild(shell, "motionButton"))
             compare(shell.motion, true)
+        }
+        function test_standalone_window() {
+            var component = Qt.createComponent("../qml/Main.qml")
+            compare(component.status, Component.Ready, component.errorString())
+            var window = component.createObject(null, {visible: false})
+            verify(window !== null)
+            compare(window.width, 384)
+            compare(window.height, 384)
+            window.destroy()
         }
         function test_zz_screenshots() {
             shell.previewTime = true

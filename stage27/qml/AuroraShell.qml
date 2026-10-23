@@ -1,4 +1,4 @@
-import QtQuick 2.12
+import QtQuick
 
 Rectangle {
     id: root
@@ -112,6 +112,7 @@ Rectangle {
         }
         RoundButton {
             objectName: "backButton"
+            z: 10
             x: 168; y: 18; width: 48; height: 40
             glyph: "back"; fill: root.page === "light" ? "#d5d8db" : "#17191c"
             ink: root.page === "light" ? "black" : "#c6cbd1"
@@ -177,11 +178,12 @@ Rectangle {
     Component {
         id: calculatorPage
         Item {
-            Text { x: 91; y: 70; width: 202; height: 42; horizontalAlignment: Text.AlignRight; text: root.calculation; color: "white"; font.pixelSize: 31; fontSizeMode: Text.Fit; minimumPixelSize: 17 }
+            RoundButton { x: 74; y: 73; width: 40; height: 36; text: "C"; motion: root.motion; onClicked: root.calculate("C") }
+            Text { x: 124; y: 70; width: 169; height: 42; horizontalAlignment: Text.AlignRight; text: root.calculation; color: "white"; font.pixelSize: 31; fontSizeMode: Text.Fit; minimumPixelSize: 17 }
             Grid {
                 x: 74; y: 124; columns: 4; spacing: 7
                 Repeater {
-                    model: ["7","8","9","÷","4","5","6","×","1","2","3","−","C","0",".","+","="]
+                    model: ["7","8","9","÷","4","5","6","×","1","2","3","−","0",".","=","+"]
                     RoundButton {
                         width: 54; height: 36; text: modelData
                         fill: modelData === "=" ? root.accent : index % 4 === 3 ? "#3c3020" : "#24272b"

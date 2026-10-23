@@ -14,6 +14,13 @@ CIは公開V1のrootfs/boot/init_boot/vendor_kernel_bootをサイズとSHA256で
 rootfsをdebugfsで読み取ってQt・ランチャー・opkg・サービス構成を記録します。
 画像をmountしたり、イメージ内のプログラムを実行したりはしません。
 
+初回CIで公開V1の全4アセットのバイト列照合に成功しました。rootfsはAsteroidOS
+2.2-nightly、Qt 6.11.3、armv7vehf-neonのパッケージ構成です。
+launcher実行ファイルのELFヘッダーもARM32として検査します。
+Qt5と決めつけず、Qt6でも操作・描画テストを行います。
+公開V1には`/usr/bin/qmlscene`や`/usr/bin/qml`がありませんでした。
+このため、QMLファイルを転送するだけで実機起動できるとは案内しません。
+
 ## デザイン
 
 ユーザーの希望により、HarmonyOS風に加えてColorOS for Watchの方向も反映します。
@@ -30,8 +37,8 @@ OPPO公式の製品紹介を参考に、Aurora UIとして独自に描くデザ�
 
 ## 初版の範囲
 
-`stage27/qml/Main.qml`は独立したQt Quickウィンドウです。QtQuick 2.12と
-QtQuick.Window 2.12だけを使用し、独自のCanvasアイコンを描きます。
+`stage27/qml/Main.qml`は独立したQt Quickウィンドウです。QtQuickと
+QtQuick.Windowだけを使用し、独自のCanvasアイコンを描きます。
 既存のasteroid-launcherを停止・上書きせず、systemdや起動イメージも変更しません。
 
 時計、ハニカム一覧、ストップウォッチ、タイマー、電卓、白いライト画面、
@@ -69,7 +76,9 @@ ps -eo user,pid,args | grep -E 'asteroid-launcher|lipstick|qmlscene'
 
 ## ローカルでデスクトップ試験
 
-Qt 5.12以降とQt Quick Test、QtQuick/WindowのQMLモジュールを用意します。
+Qt 5.15またはQt 6とQt Quick Test、QtQuick/WindowのQMLモジュールを用意します。
+CIのデスクトップQt6とV1のQt 6.11.3は同じビルドではありません。
+ARM32実機での動作をCI成功だけから保証しません。
 
 ```sh
 mkdir -p stage27-artifacts
