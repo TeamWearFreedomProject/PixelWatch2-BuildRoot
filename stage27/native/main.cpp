@@ -3,6 +3,7 @@
 #include <QImage>
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
+#include <QStringList>
 #include <QTimer>
 #include <QUrl>
 #include <QVariant>
