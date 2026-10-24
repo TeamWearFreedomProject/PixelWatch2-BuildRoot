@@ -18,7 +18,7 @@ def guest(work, executable, args, timeout=90):
     command = [str(host), '-cpu', 'cortex-a15', '-L', str(work / 'v1-runtime')]
     values = {'LD_BIND_NOW': '1', 'LD_LIBRARY_PATH': '/usr/lib:/lib',
               'QT_QPA_PLATFORM': 'offscreen', 'QT_QUICK_BACKEND': 'software',
-              'QML_DISABLE_DISK_CACHE': '1', 'QT_IM_MODULE': 'none',
+              'QML_IMPORT_PATH': str(work / 'v1-runtime/usr/lib/qml'), 'QML_DISABLE_DISK_CACHE': '1', 'QT_IM_MODULE': 'none',
               'DBUS_SESSION_BUS_ADDRESS': 'disabled:', 'DBUS_SYSTEM_BUS_ADDRESS': 'disabled:'}
     for key, name in (('HOME', 'guest-home'), ('XDG_RUNTIME_DIR', 'guest-runtime')):
         directory = work / name

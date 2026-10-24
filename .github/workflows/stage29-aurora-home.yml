@@ -61,6 +61,7 @@ jobs:
             stage29-artifacts/*.json
             stage29-artifacts/*.txt
             stage29-artifacts/*.log
+            stage29-artifacts/aurora-stage29/
             stage29-artifacts/screenshots/*.png
             stage29-artifacts/integrated-screenshots/*.png
             stage28-work/*json

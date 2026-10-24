@@ -65,6 +65,7 @@ int main(int argc, char **argv) {
         QCoreApplication::setApplicationName("aurora-ui-home");
         QGuiApplication::setDesktopFileName("aurora-ui-home");
         QQuickView view;
+        view.engine()->addImportPath("/usr/lib/qml");
         view.setResizeMode(QQuickView::SizeRootObjectToView);
         view.setTitle("Aurora UI Home");
         if (watch) view.setFlags(Qt::Window | Qt::FramelessWindowHint);

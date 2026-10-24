@@ -19,6 +19,7 @@ inline QJsonObject configureHome(const QString &action) {
     for(const auto &name:{"NativeHome.qml","NativeApps.qml","HomeConfig.qml"})
         AuroraSession::require(QFileInfo(directory+name).isFile(),"Incomplete Aurora home bundle");
     QQmlEngine engine;
+    engine.addImportPath("/usr/lib/qml");
     QQmlComponent component(&engine,QUrl::fromLocalFile(directory+"HomeConfig.qml"));
     std::unique_ptr<QObject> config(component.create());
     AuroraSession::require(config!=nullptr,"Cannot read Nemo home configuration: "+component.errorString());
