@@ -29,7 +29,8 @@ jobs:
             2>&1 | tee stage27-artifacts/setup.log
           timeout 300 sudo apt-get -o Acquire::http::Timeout=20 \
             -o Acquire::https::Timeout=20 -o Acquire::Retries=2 \
-            install -y --no-install-recommends e2fsprogs cmake libgl1-mesa-dev qt6-base-dev qt6-declarative-dev \
+            install -y --no-install-recommends e2fsprogs cmake libgl1-mesa-dev \
+            qt6-base-dev libqt6opengl6-dev qt6-declarative-dev \
             qtdeclarative5-dev-tools qml-module-qtquick2 qml-module-qtquick-window2 \
             qml-module-qttest qt6-declarative-dev-tools qt6-qpa-plugins qml6-module-qtquick \
             qml6-module-qtquick-window qml6-module-qttest qml6-module-qtqml \
