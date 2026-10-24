@@ -4,7 +4,9 @@
 
 Pixel Watch 2 Wi-Fi (`aurora`) 向けに、**AsteroidOSを土台にした独自の丸型Aurora UI**を作るプロジェクトです。HarmonyOSとColorOS for Watchの方向を参考に、時計・タッチ操作・低消費電力を考えたUIを目指します。以前のBuildrootとUbuntu Touchによる調査も履歴として保持しています。
 
-**Status: Stage27 / AsteroidOS V1を土台にAurora UIへ。** ユーザーのV1ではUSB・Wi-Fi・Bluetoothが利用でき、GUI・ADB・Linux 5.15.144の起動も確認されました。[Stage27](docs/STAGE27.md) は公開V1をSHA256照合して読み取り専用で解析し、ColorOS for Watch/HarmonyOSに着想を得た独自のQt Quickデモを作ります。既存ランチャーの置換や自動起動はまだ行いません。
+**Status: Stage28 / V1向けARM32独立プレビュー。** 実機のBUILD_ID、32bit userspace、Qt 6.11.3、ランチャー版が公開V1と一致しました。[Stage28](docs/STAGE28.md)は公式SDKでARM32版を作り、V1ライブラリを使って実行・描画を検査します。実機のGUIセッションを検出して、そのユーザーで独立アプリを開く方式です。実機GUIの初試験はこれからです。
+
+[Stage27](docs/STAGE27.md)のColorOS for Watch/HarmonyOSに着想を得た独自QMLを使用します。USB・Wi-Fi・Bluetoothの動作実績があるAsteroidOSのランチャーを残し、置換や自動起動設定は行いません。
 
 Stage25/26はどちらも実機でCOMなし・自動Fastboot復帰なしでした。停止箇所は未確定で、これらの診断イメージの再試行は中止します。以前のBuildroot/UT調査は履歴として保持します。
 
@@ -12,7 +14,7 @@ Stage25/26はどちらも実機でCOMなし・自動Fastboot復帰なしでし�
 
 Stage 23までのBuildroot調査も保持しています。Stage 22は実機でLinux・USBシェル・Fastboot復帰を確認済みですが、Stage 24のUT成果物の実機動作は未確認です。
 
-**Architecture:** 現在のAsteroidOSではARM64 Linux 5.15.144が実機起動しています。公開V1のrootfs解析ではARM32のパッケージ構成とQt 6.11.3を確認しました。現在の実機userspaceとの一致は読み取りで確認します。以前のStage22はARM64 Linux 5.15.137 + ARM32 musl/BusyBoxの診断環境でした。
+**Architecture:** 現在のAsteroidOSではARM64 Linux 5.15.144が実機起動しています。実機のgetconfは32、qtbase/qtdeclarativeは6.11.3-r0で、公開V1のARM32パッケージ構成と一致しました。以前のStage22はARM64 Linux 5.15.137 + ARM32 musl/BusyBoxの診断環境でした。
 
 - 対象: Google Pixel Watch 2 Wi-Fi / `aurora`
 - 以前の実機Fastboot情報: `aurora`、slot `b`、unlocked `yes`、bootloader `eos-0.4-11366482`。現在のV1環境では再確認していません。全パーティションのFW版は未確定です。

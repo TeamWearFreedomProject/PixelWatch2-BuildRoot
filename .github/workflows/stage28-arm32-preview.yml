@@ -1,0 +1,66 @@
+name: Stage 28 - ARM32 Aurora UI on AsteroidOS V1
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stage28-arm32-preview.yml'
+      - 'stage28/**'
+      - 'docs/STAGE28.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: stage28-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  arm32-preview:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate source and host prerequisites
+        run: |
+          set -euo pipefail
+          for tool in python3 tar xz file debugfs readelf; do command -v "$tool"; done
+          bash -n stage28/build.sh
+          python3 -m compileall -q stage28
+          python3 -m unittest discover -s stage28 -p 'test_*.py' -v
+          git diff --check
+      - name: Download and verify pinned official SDK and V1 rootfs
+        timeout-minutes: 12
+        run: python3 stage28/fetch_inputs.py stage28-work
+      - name: Prepare verified SDK and validate host relocation inputs
+        timeout-minutes: 14
+        run: python3 stage28/prepare_sdk.py stage28-work
+      - name: Cross-compile ARM32 with the SDK ARM assembler and linker
+        run: bash stage28/build.sh
+      - name: Extract V1 runtime without mounting the image
+        run: python3 stage28/prepare_runtime.py stage28-work
+      - name: Test final ARM32 executable with actual V1 runtime under QEMU
+        run: python3 stage28/check_native.py stage28-work stage28-artifacts
+      - name: Package verified standalone app, source, guide and reports
+        run: |
+          python3 stage28/package.py stage28-artifacts
+          cd stage28-artifacts
+          sha256sum -c SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage28-ARM32-PREVIEW
+          path: stage28-artifacts/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Keep failure diagnostics without SDK or stock runtime binaries
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage28-FAILURE-REPORTS
+          path: |
+            stage28-artifacts/*.json
+            stage28-artifacts/*.txt
+            stage28-artifacts/*.log
+            stage28-artifacts/screenshots/*.png
+            stage28-work/*json
+            stage28-work/v1-extract.log
+          retention-days: 30
+          if-no-files-found: ignore

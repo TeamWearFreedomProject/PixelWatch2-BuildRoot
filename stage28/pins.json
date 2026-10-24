@@ -1,0 +1,17 @@
+{
+  "sdk": {
+    "url": "https://release.asteroidos.org/nightlies/sdk/oecore-meta-toolchain-qt6-x86_64-armv7vehf-neon-sturgeon-toolchain-nodistro.0.sh",
+    "sha512": "fa676d36f5af6d24214fe003bd6ff8e22bcea5f0f002cacfa2478696607ca1f3674ad1b7f16c28f0dee969b74ca23593ffa4c36f255f4ed1705414284048669c",
+    "checksum_source": "https://release.asteroidos.org/nightlies/sdk/SHA512SUMS"
+  },
+  "expected_qt": "6.11.3",
+  "expected_userspace_bits": 32,
+  "live_device_report": {
+    "os": "AsteroidOS 2.2-nightly",
+    "build_id": "20261005064926",
+    "getconf_LONG_BIT": 32,
+    "qtbase": "6.11.3-r0",
+    "qtdeclarative": "6.11.3-r0",
+    "asteroid_launcher": "1:2.1+152+git0+c8c4d4bd46-r1"
+  }
+}
