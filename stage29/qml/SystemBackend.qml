@@ -2,6 +2,7 @@ import QtQuick
 import Nemo.Configuration
 import Nemo.Mce
 import Connman
+import org.asteroid.settings
 import org.asteroid.utils
 
 Item {

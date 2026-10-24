@@ -19,7 +19,7 @@ def guest(work, executable, args, timeout=90):
     values = {'LD_BIND_NOW': '1', 'LD_LIBRARY_PATH': '/usr/lib:/lib',
               'QT_QPA_PLATFORM': 'offscreen', 'QT_QUICK_BACKEND': 'software',
               'QML_DISABLE_DISK_CACHE': '1', 'QT_IM_MODULE': 'none',
-              'DBUS_SESSION_BUS_ADDRESS': 'disabled:'}
+              'DBUS_SESSION_BUS_ADDRESS': 'disabled:', 'DBUS_SYSTEM_BUS_ADDRESS': 'disabled:'}
     for key, name in (('HOME', 'guest-home'), ('XDG_RUNTIME_DIR', 'guest-runtime')):
         directory = work / name
         directory.mkdir(exist_ok=True, mode=0o700)
@@ -34,7 +34,7 @@ def guest(work, executable, args, timeout=90):
         for key, value in values.items():
             command.extend(['-E', key + '=' + value])
         command.extend([str(executable), *args])
-        return subprocess.run(command, capture_output=True, text=True, timeout=timeout, env=env)
+        return subprocess.run(command, capture_output=True, text=True, errors="backslashreplace", timeout=timeout, env=env)
 
 
 def check(work, out):
@@ -74,7 +74,7 @@ def check(work, out):
         raise ValueError('Live-session discovery/refusal tests failed')
     home_tests = guest(work, work / 'arm32-home/aurora-home-tests', [])
     (out / 'home-tests.log').write_text(home_tests.stdout + home_tests.stderr)
-    if home_tests.returncode != 0 or '6 home activation' not in home_tests.stdout:
+    if home_tests.returncode != 0 or '7 home activation' not in home_tests.stdout:
         raise ValueError('Home transaction checks failed')
     for mode in ('--session-check', '--watch-session', '--activate-home', '--restore-home', '--home-status'):
         refused = guest(work, executable, [mode])
@@ -109,7 +109,7 @@ def check(work, out):
               'qt_build': data['qt_build'], 'qt_runtime': data['qt_runtime'],
               'runtime_libraries': 'SHA256-verified public AsteroidOS V1',
               'ld_bind_now': True, 'session_discovery_checks': 7,
-              'missing_session_refused': True, 'offscreen_pages_rendered': 9, 'integrated_pages_rendered': 4, 'home_transaction_checks':6, 'real_qt_input_checks':3, 'panel_attach_restore_fixture':True,
+              'missing_session_refused': True, 'offscreen_pages_rendered': 9, 'integrated_pages_rendered': 4, 'home_transaction_checks':7, 'real_qt_input_checks':3, 'panel_attach_restore_fixture':True,
               'offscreen_navigation_pixels_checked': True,
               'stage28_watch_display_reported_working': True, 'stage29_watch_display_tested': False, 'watch_session_tested': False,
               'kernel_or_rootfs_replaced': False, 'inputs': inputs}

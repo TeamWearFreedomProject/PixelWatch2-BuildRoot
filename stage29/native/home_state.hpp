@@ -20,14 +20,14 @@ inline Plan plan(const QString &action,const Pair &current,const Pair &wanted,co
         if(!saved.isEmpty()) {
             AuroraSession::require(saved["schema"].toInt()==1,"Unsupported home backup schema");
             original=Pair::from(saved["original"].toObject());
-            AuroraSession::require(current==Pair::from(saved["installed"].toObject()),
+            AuroraSession::require(current==original || current==Pair::from(saved["installed"].toObject()),
                 "Home settings changed since activation; refusing to overwrite them");
         }
         return {wanted,{{"schema",1},{"original",original.json()},{"installed",wanted.json()}},false};
     }
     AuroraSession::require(action=="restore" && !saved.isEmpty(),"No Aurora home backup to restore");
     AuroraSession::require(saved["schema"].toInt()==1,"Unsupported home backup schema");
-    AuroraSession::require(current==Pair::from(saved["installed"].toObject()),
+    AuroraSession::require(current==Pair::from(saved["original"].toObject()) || current==Pair::from(saved["installed"].toObject()),
         "Home settings changed since activation; refusing to overwrite them");
     return {Pair::from(saved["original"].toObject()),saved,true};
 }

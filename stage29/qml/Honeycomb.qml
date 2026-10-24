@@ -32,7 +32,7 @@ Item {
             color: entry.tint || "#3679f5"
             opacity: spot.opacity
             visible: opacity > 0
-            Icon { anchors.centerIn: parent; width: parent.width*0.51; height: width; kind: entry.glyph || "apps"; ink: entry.glyph === "light" ? "#141820" : "white" }
+            Icon { anchors.centerIn: parent; width:44; height:44; scale:parent.width*0.51/44; kind: entry.glyph || "apps"; ink: entry.glyph === "light" ? "#141820" : "white" }
             Accessible.role: Accessible.Button
             Accessible.name: entry.title || entry.app
             Accessible.onPressAction: root.chosen(entry)
@@ -74,5 +74,5 @@ Item {
         onCanceled: root.dragging=false
     }
     RoundButton { x:168; y:18; width:48; height:40; glyph:"back"; motion:root.motion; onClicked:root.back() }
-    Text { x:65; y:344; width:254; horizontalAlignment:Text.AlignHCenter; elide:Text.ElideRight; text:root.caption; color:"#929ba8"; font.pixelSize:13 }
+    Text { x:98; y:344; width:188; horizontalAlignment:Text.AlignHCenter; elide:Text.ElideRight; text:root.caption; color:"#929ba8"; font.pixelSize:13 }
 }

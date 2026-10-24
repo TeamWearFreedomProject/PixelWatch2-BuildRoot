@@ -38,7 +38,7 @@ Rectangle {
         if(entry.nativeObject) { entry.nativeObject.launchApplication(); return }
         openPage(entry.app)
     }
-    function goBack() { page=returnPage }
+    function goBack() { if(integrated && returnPage==="apps")appsRequested();else page=returnPage }
     Connections {
         target: root.backend
         function onAccentChanged() { root.accent=root.backend.accent }
@@ -68,7 +68,8 @@ Rectangle {
     function openPage(name) {
         if(integrated && name==="clock") { homeRequested(); return }
         if(integrated && name==="apps" && page!=="apps") { appsRequested(); return }
-        if(name==="settings")returnPage="control"
+        if(name==="light")returnPage=page==="control"?"control":"apps"
+        else if(name==="settings")returnPage="control"
         else if(name==="control")returnPage="apps"
         else if(name==="style" || name==="about")returnPage=page==="settings"?"settings":"apps"
         else returnPage="apps"
