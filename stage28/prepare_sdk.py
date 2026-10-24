@@ -56,11 +56,11 @@ def prepare(work):
     header = header.replace(original, replacement, 1)
     resumed = work / 'sdk-setup-validated.sh'
     resumed.write_text(header + '\nMARKER:\n')
-    print('Relocate complete SDK tools; omit five validated non-runtime staging residues', flush=True)
+    print('Relocate complete SDK tools; omit only known malformed staging residues if present', flush=True)
     subprocess.run(['sh', str(resumed), '-y', '-d', str(sdk)], check=True)
     (work / 'sdk-preparation.json').write_text(json.dumps({
         'original_sdk_sha512': pins['sdk']['sha512'], 'qt_version': version,
-        'header_adjustment': 'extract once; validate host ELFs and exclude only five pinned truncated staging files',
+        'header_adjustment': 'extract once; validate host ELFs; exclude only known truncated staging residues when present',
         'setup_header_sha256': hashlib.sha256(resumed.read_bytes()).hexdigest(),
         'target_libraries_modified': False,
     }, indent=2) + '\n')

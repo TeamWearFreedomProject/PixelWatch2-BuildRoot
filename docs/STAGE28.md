@@ -13,9 +13,10 @@ Qt6実行ファイルから開くための段階です。画面に出るStage27 
 ## ビルドと実行前検査
 
 - 公式ARM SDKのSHA512と公開V1 rootfsのSHA256/サイズを固定。
-- SDKはQt 6.11.3を要求。SDKの配置中に、不完全な一時ステージングファイル5件が
-  ELFの再配置を止める問題を確認したため、固定SDKでその5件だけを除外する。
-  全ての実行対象ELFのヘッダー範囲と、完全な本体ファイルがあることを検査する。
+- SDKはQt 6.11.3を要求。ローカル配置で、不完全な一時ステージングファイル5件が
+  ELFの再配置を止める問題を確認。クリーンなCIでは残らなかったため、それらの存在は
+  必須にせず、既知の名前・サイズ・破損条件が全て一致する場合だけ除外する。
+  未知の破損は拒否し、実行対象ELFの範囲と、除外対象の完全な本体があることを検査する。
   SDKの元データは変更せず、ターゲットQtライブラリも書き換えない。
 - 同SDKのGCCがホストのasを選ばないよう、専用-BディレクトリからSDKのARM as/ldを選択。
 - 最終バイナリーをstripした後で、ARM32/EABI5/hard-float、RPATH/RUNPATHなしを確認。
@@ -53,3 +54,19 @@ QEMUのオフスクリーン検査は、実機のWayland/EGL/入力/表示速度
 OS全体のランチャー置換、通知/表冠/既存アプリとの統合、スピーカー無効化は後の段階です。
 
 公式参考: https://wiki.asteroidos.org/index.php/Installing_the_SDK
+
+## Linux x86_64で再ビルドする場合
+
+Python3、tar、xz、file、debugfs、readelfを用意して、リポジトリまたはソースZIPのルートで実行します。
+SDKは作業フォルダーへ配置され、Windowsや時計へインストールするものではありません。
+
+```sh
+python3 stage28/fetch_inputs.py stage28-work
+python3 stage28/prepare_sdk.py stage28-work
+bash stage28/build.sh
+python3 stage28/prepare_runtime.py stage28-work
+python3 stage28/check_native.py stage28-work stage28-artifacts
+python3 stage28/package.py stage28-artifacts
+```
+
+GUIセッションのソケット検査にはAF_UNIXの作成が許可されたLinux環境が必要です。

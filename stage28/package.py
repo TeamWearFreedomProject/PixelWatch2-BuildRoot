@@ -74,7 +74,7 @@ Wi-Fi/Bluetoothの設定、カーネル、起動イメージ、音声サービ�
             for path in sorted((REPO / directory).rglob('*')):
                 if path.is_file() and '__pycache__' not in path.parts:
                     zip_file.write(path, str(path.relative_to(REPO)))
-        for name in ('stage27/v1-pins.json', 'docs/STAGE28.md'):
+        for name in ('stage27/v1-pins.json', 'docs/STAGE28.md', '.github/workflows/stage28-arm32-preview.yml'):
             zip_file.write(REPO / name, name)
     manifest = '\n'.join(sha(p) + '  ' + str(p.relative_to(out))
                          for p in sorted(out.rglob('*')) if p.is_file() and p != out / 'SHA256SUMS') + '\n'

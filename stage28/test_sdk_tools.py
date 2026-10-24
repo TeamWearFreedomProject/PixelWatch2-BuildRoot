@@ -29,6 +29,14 @@ def fixture(root):
 
 
 class SDKInputs(unittest.TestCase):
+    def test_clean_sdk_without_staging_residues(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            elf(root / 'usr/bin/tool')
+            valid, skipped = tools.executables(root)
+            self.assertEqual(len(valid), 1)
+            self.assertEqual(skipped, [])
+
     def test_only_pinned_staging_residues_are_excluded(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp); fixture(root)

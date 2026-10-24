@@ -7,8 +7,8 @@ import shlex
 import struct
 import sys
 
-# These truncated hidden staging files are present in the published, pinned SDK.
-# They are not runtime files; their complete non-hidden counterparts are validated.
+# These truncated staging residues were observed during local SDK setup.
+# They may be absent on a clean CI extraction. Never ignore other corruption.
 RESIDUES = {
     'usr/bin/.qemu-system-mipsel.p8TF6q': 8126464,
     'usr/bin/.cmake.wc2B1G': 1572864,
@@ -45,8 +45,6 @@ def executables(root):
             if relative in RESIDUES:
                 raise ValueError('SDK residue unexpectedly changed: ' + relative)
             valid.append(str(path))
-    if set(skipped) != set(RESIDUES):
-        raise ValueError('Pinned SDK residue inventory changed')
     return valid, skipped
 
 
