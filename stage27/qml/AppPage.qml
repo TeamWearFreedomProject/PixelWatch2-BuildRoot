@@ -1,7 +1,8 @@
 import QtQuick 2.12
 
-Item {
+Rectangle {
     id: page
+    color: "black"
     property var shell
     default property alias content: body.data
     Item { id: body; anchors.fill: parent }

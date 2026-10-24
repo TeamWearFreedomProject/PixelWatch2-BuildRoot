@@ -1,8 +1,10 @@
 #include <QDir>
+#include <QDebug>
 #include <QGuiApplication>
 #include <QImage>
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
+#include <QQuickItem>
 #include <QStringList>
 #include <QTimer>
 #include <QUrl>
@@ -35,6 +37,19 @@ int main(int argc, char **argv) {
             if (image.size() != QSize(384, 384) ||
                 !image.save(output.filePath(pages.at(index) + ".png"))) {
                 app.exit(3); return;
+            }
+            if (pages.at(index) != "clock" && pages.at(index) != "apps") {
+                int visible = 0;
+                for (int y = 20; y < 56; ++y)
+                    for (int x = 170; x < 214; ++x)
+                        if (qGray(image.pixel(x, y)) > 8) ++visible;
+                if (visible < 500) {
+                    auto *back = shell->findChild<QQuickItem *>("backButton");
+                    qCritical() << "Navigation missing from" << pages.at(index) << "pixels" << visible;
+                    if (back) qCritical() << "Back item" << back->isVisible() << back->opacity()
+                                         << back->size() << back->mapToScene(QPointF()) << back->property("color");
+                    app.exit(4); return;
+                }
             }
             ++index;
             capture();
