@@ -10,6 +10,7 @@ Item {
     property real panY: 0
     property bool motion: true
     property bool dragging: false
+    property Component nativeIconDelegate:null
     property string caption: "ドラッグして探す"
     readonly property real panLimit: 100 * (Math.ceil(Math.sqrt(entries.length)) + 1)
     signal chosen(var entry)
@@ -32,7 +33,13 @@ Item {
             color: entry.tint || "#3679f5"
             opacity: spot.opacity
             visible: opacity > 0
-            Icon { anchors.centerIn: parent; width:44; height:44; scale:parent.width*0.51/44; kind: entry.glyph || "apps"; ink: entry.glyph === "light" ? "#141820" : "white" }
+            readonly property bool hasNativeIcon: !!(entry.nativeObject && entry.nativeObject.iconId && root.nativeIconDelegate)
+            Icon { anchors.centerIn: parent; width:44; height:44; scale:parent.width*0.51/44; kind: entry.glyph || "apps"; ink: entry.glyph === "light" ? "#141820" : "white";visible:!parent.hasNativeIcon }
+            Loader {
+                anchors.centerIn:parent;width:48;height:48;scale:parent.width*0.6/48
+                sourceComponent:parent.hasNativeIcon?root.nativeIconDelegate:null
+                onLoaded:item.entry=parent.entry
+            }
             Accessible.role: Accessible.Button
             Accessible.name: entry.title || entry.app
             Accessible.onPressAction: root.chosen(entry)

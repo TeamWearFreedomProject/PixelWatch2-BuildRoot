@@ -10,6 +10,7 @@ Rectangle {
     property string page: "clock"
     property var backend: null
     property var nativeModel: null
+    property Component nativeIconDelegate:null
     property bool integrated: false
     property bool clockActive: true
     property string returnPage: "apps"
@@ -163,7 +164,7 @@ Rectangle {
     }
     Component {
         id: appsPage
-        Honeycomb { entries:root.entries;motion:root.motion;onChosen:entry=>root.choose(entry);onBack:{ if(root.integrated)root.homeRequested();else root.openPage("clock") } }
+        Honeycomb { entries:root.entries;nativeIconDelegate:root.nativeIconDelegate;motion:root.motion;onChosen:entry=>root.choose(entry);onBack:{ if(root.integrated)root.homeRequested();else root.openPage("clock") } }
     }
     Component {
         id:controlPage

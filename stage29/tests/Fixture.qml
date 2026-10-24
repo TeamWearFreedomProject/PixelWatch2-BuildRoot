@@ -11,7 +11,7 @@ Item {
     QtObject {
         id:launcherModel
         property int count:18
-        function get(i) { return {title:"アプリ "+(i+1),iconId:"",launchApplication:function(){fixture.launchCount++}} }
+        function get(i) { return {title:"アプリ "+(i+1),iconId:["ios-musical-notes","ios-calendar","ios-cloud","ios-heart","ios-alarm","ios-settings"][i%6],launchApplication:function(){fixture.launchCount++}} }
     }
     Item {
         id:grid;anchors.fill:parent

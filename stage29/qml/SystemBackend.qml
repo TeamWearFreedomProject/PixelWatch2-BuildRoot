@@ -12,7 +12,7 @@ Item {
     readonly property bool wifiOn: wifi.powered
     readonly property bool wifiConnected: wifi.connected
     readonly property bool bluetoothOn: bt.powered
-    readonly property int battery: level.percent
+    readonly property int battery: level.valid?level.percent:-1
     readonly property int brightness: display.brightness
     readonly property bool autoBrightness: display.ambientLightSensorEnabled
     readonly property bool alwaysOn: aod.value

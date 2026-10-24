@@ -109,12 +109,12 @@ def check(work, out):
               'qt_build': data['qt_build'], 'qt_runtime': data['qt_runtime'],
               'runtime_libraries': 'SHA256-verified public AsteroidOS V1',
               'ld_bind_now': True, 'session_discovery_checks': 7,
-              'missing_session_refused': True, 'offscreen_pages_rendered': 9, 'integrated_pages_rendered': 4, 'home_transaction_checks':7, 'real_qt_input_checks':3, 'panel_attach_restore_fixture':True,
+              'missing_session_refused': True, 'offscreen_pages_rendered': 9, 'integrated_pages_rendered': 4, 'home_transaction_checks':7, 'real_qt_input_checks':3, 'panel_attach_restore_fixture':True, 'native_v1_icons_rendered':True,
               'offscreen_navigation_pixels_checked': True,
               'stage28_watch_display_reported_working': True, 'stage29_watch_display_tested': False, 'watch_session_tested': False,
               'kernel_or_rootfs_replaced': False, 'inputs': inputs}
     (out / 'native-check.json').write_text(json.dumps(report, indent=2) + '\n')
-    for name in ('sdk-preparation.json', 'sdk-relocation-inputs.json'):
+    for name in ('sdk-preparation.json', 'sdk-relocation-inputs.json', 'v1-ui-assets.json'):
         shutil.copyfile(work / name, out / name)
     shutil.copyfile(work / 'v1-runtime/.aurora-runtime.json', out / 'v1-runtime.json')
     print(json.dumps(report), flush=True)

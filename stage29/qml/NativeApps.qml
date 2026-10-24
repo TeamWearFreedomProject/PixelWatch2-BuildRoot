@@ -1,5 +1,6 @@
 import QtQuick
 import Nemo.Configuration
+import org.asteroid.controls as AsteroidControls
 
 Item {
     id:root
@@ -9,8 +10,9 @@ Item {
     property var applications:typeof launcherModel === "undefined" ? null : launcherModel
     SystemBackend { id:system }
     ConfigurationValue { id:ready;key:"/org/aurora-ui/apps-ready";defaultValue:"" }
+    Component { id:nativeIcon;AsteroidControls.Icon { property var entry;name:entry&&entry.nativeObject?entry.nativeObject.iconId:"ios-help";color:"white" } }
     AuroraShell {
-        id:shell;anchors.fill:parent;page:"apps";backend:system;nativeModel:root.applications;integrated:true
+        id:shell;anchors.fill:parent;page:"apps";backend:system;nativeModel:root.applications;nativeIconDelegate:nativeIcon;integrated:true
         onHomeRequested:if(root.hostGrid)root.hostGrid.moveTo(0,0)
         onAppsRequested:page="apps"
     }

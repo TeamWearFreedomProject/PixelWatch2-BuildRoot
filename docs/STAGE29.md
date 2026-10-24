@@ -25,7 +25,7 @@ NativeHome.qmlはV1のPanelsGrid公開関数(cellAt/movePanel/addPanel/removePan
 元のクイックパネルを破棄せず退避してAuroraパネルを挿入する。文字盤が外れると元へ戻す。
 新しい文字盤とアプリ一覧が12秒以内にロード完了を返さなければ、CLIが元の設定へ戻す。
 NativeApps.qmlはV1のLauncherModelに載るインストール済みアプリも追加し、各アプリの
-launchApplicationへ渡す。アプリ一覧の戻るボタンで時計へ戻る。
+launchApplicationへ渡す。アイコンもV1の標準アイコンを利用する。アプリ一覧の戻るボタンで時計へ戻る。
 
 `--activate-home` で設定、`--home-status` で確認、`--restore-home` で復元する。
 バックアップがない場合や、設定後に利用者が別の文字盤へ変更した場合は推測で上書きしない。
@@ -51,7 +51,7 @@ Linux x86_64でPython3、tar、xz、file、debugfs、readelfが必要。
 python3 stage28/fetch_inputs.py stage28-work
 python3 stage28/prepare_sdk.py stage28-work
 bash stage29/build.sh
-python3 stage28/prepare_runtime.py stage28-work
+python3 stage29/prepare_runtime.py stage28-work
 python3 stage29/check_native.py stage28-work stage29-artifacts
 python3 stage29/package.py stage29-artifacts
 ```
