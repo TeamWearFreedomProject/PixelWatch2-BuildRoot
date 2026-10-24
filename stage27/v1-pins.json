@@ -1,0 +1,20 @@
+{
+  "release": "https://github.com/TeamWearFreedomProject/Pixel-Watch-2-Asteroid-OS-Beta/releases/tag/V1",
+  "release_tag": "V1",
+  "assets": [
+    {"name": "asteroid-image-aurora.rootfs-20261005064926.ext4", "bytes": 1441935360, "sha256": "a4b1689a01e8158dd65e748c0f13a632253d2b040bc5cda912210ce3c1bda6ef"},
+    {"name": "boot.img", "bytes": 29319168, "sha256": "5352cc2831215084c24e3ec7a3c025ac3863bc8191b65da33a09adf159fb9a56"},
+    {"name": "init_boot.img", "bytes": 3796992, "sha256": "acfda976ea8da2e3b624d459c78bfc79442203548d4851c89af55d56287613b9"},
+    {"name": "vendor_kernel_boot.img", "bytes": 8093696, "sha256": "846761f9b420945a656994049bdfabec0df0759ab6b68ed02ec5e7734d8b85bc"}
+  ],
+  "user_hardware_report": {
+    "gui_boot": true,
+    "usb_connection": true,
+    "wifi": true,
+    "bluetooth": true,
+    "adb_connection": true,
+    "uname": "Linux aurora 5.15.144 #1 SMP PREEMPT Sun Mar 30 15:32:43 UTC 2025 aarch64 GNU/Linux",
+    "image_hashes_read_back_from_watch": false,
+    "notes": "User reported past V1 USB/Wi-Fi/Bluetooth operation, then supplied a current GUI photo, adb devices output and uname. Running partition hashes have not been read back, so exact identity with all release assets is not proven."
+  }
+}

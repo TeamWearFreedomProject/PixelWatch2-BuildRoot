@@ -2,24 +2,32 @@
 
 > スマートウォッチのスマートさを生かそう
 
-Pixel Watch 2 Wi-Fi (`aurora`) 向けの**独立した組み込み Linux**を研究するプロジェクトです。Buildroot で最小 userspace/rootfs（ARM32とARM64の2案）を生成し、将来的に時計・タッチ操作・低消費電力・独自の丸型 UI を実装することを目指します。
+Pixel Watch 2 Wi-Fi (`aurora`) 向けに、**AsteroidOSを土台にした独自の丸型Aurora UI**を作るプロジェクトです。HarmonyOSとColorOS for Watchの方向を参考に、時計・タッチ操作・低消費電力を考えたUIを目指します。以前のBuildrootとUbuntu Touchによる調査も履歴として保持しています。
 
-**Status: Stage26 / USB復旧を最優先。** [Stage26](docs/STAGE26.md) は専用PID1・シェル・90秒ソフトウェア復帰タイマーをカーネル内蔵initramfsに組み込みます。Stage25は実機でCOMなし・自動復帰なし、強制再起動でFastbootへ復帰。原因は未確定です。
+**Status: Stage27 / AsteroidOS V1を土台にAurora UIへ。** ユーザーのV1ではUSB・Wi-Fi・Bluetoothが利用でき、GUI・ADB・Linux 5.15.144の起動も確認されました。[Stage27](docs/STAGE27.md) は公開V1をSHA256照合して読み取り専用で解析し、ColorOS for Watch/HarmonyOSに着想を得た独自のQt Quickデモを作ります。既存ランチャーの置換や自動起動はまだ行いません。
+
+Stage25/26はどちらも実機でCOMなし・自動Fastboot復帰なしでした。停止箇所は未確定で、これらの診断イメージの再試行は中止します。以前のBuildroot/UT調査は履歴として保持します。
 
 [Stage 24](docs/STAGE24.md) のGitHubビルドは成功し、ARM32のUbuntuホストrootfs（apt/dpkg）とARM64カーネルを生成済みです。
 
 Stage 23までのBuildroot調査も保持しています。Stage 22は実機でLinux・USBシェル・Fastboot復帰を確認済みですが、Stage 24のUT成果物の実機動作は未確認です。
 
-**Architecture:** 実機確認済みの候補は ARM64 Linux 5.15.137 + ARM32 musl/BusyBox userspaceです。64bit userspaceの代替設定も保持しますが、その実機動作は未確認です。
+**Architecture:** 現在のAsteroidOSではARM64 Linux 5.15.144が実機起動しています。公開V1のrootfs解析ではARM32のパッケージ構成とQt 6.11.3を確認しました。現在の実機userspaceとの一致は読み取りで確認します。以前のStage22はARM64 Linux 5.15.137 + ARM32 musl/BusyBoxの診断環境でした。
 
 - 対象: Google Pixel Watch 2 Wi-Fi / `aurora`
-- 直近の実機Fastboot情報: `aurora`、slot `b`、unlocked `yes`、bootloader `eos-0.4-11366482`。全パーティションのFW版は未確定です。
+- 以前の実機Fastboot情報: `aurora`、slot `b`、unlocked `yes`、bootloader `eos-0.4-11366482`。現在のV1環境では再確認していません。全パーティションのFW版は未確定です。
 - Ubuntu Touchの参考FW: **TWD9.240405.001**（Android 13系）。これは**他のOSの動作保証ではありません**。
-- 現在の候補は [Stage 22](docs/STAGE22.md) の `boot-stage22.img`。USBシェルと90秒後の復帰要求を備えた診断用イメージです。画面・タッチ・時計UIは未確認です。
+- 現在の基準は[ユーザーのAsteroidOS V1](https://github.com/TeamWearFreedomProject/Pixel-Watch-2-Asteroid-OS-Beta/releases/tag/V1)。[Stage22](docs/STAGE22.md)のUSBシェルは以前の診断環境として保持します。
 - [Stage 23の手順](stage23/WINDOWS-CAPTURE.md) は、この候補を一時起動して表示・入力情報を取得します。rootfs単体をフラッシュするものではありません。
-- パッケージ管理コマンドは未導入です。ソフトはBuildrootで選択してrootfsへ組み込みます。
+- 現方針ではAsteroidOS標準のopkgを使用します。Ubuntuのaptを導入したものではありません。以前のBuildroot rootfsにはパッケージ管理コマンドを導入していません。
 
-## Stage plan
+## Current plan
+
+1. 実機で動作したAsteroidOS V1一式をSHA256で固定し、Qtと起動セッションを把握する。
+2. 既存ランチャーを残して独立したAurora UIデモを試し、時計・ハニカム一覧・操作カードを調整する。
+3. 既存アプリ、通知、表冠、消灯/復帰との統合を進め、その後スピーカーを無効化する。
+
+## Historical Buildroot plan
 
 1. **Buildroot rootfs**: ARM32（優先）とARM64の musl + BusyBox + init を選択してビルドし、`rootfs.cpio.gz` と `rootfs.tar`、BusyBoxのELF種別を検証する。
 2. **Kernel + initramfs**: 既存のAurora Linux 5.15実験を調査し、互換性を確認。特に組み込みinitramfsと起動ヘッダーv4の制約。
