@@ -1,5 +1,7 @@
 # PixelWatch2-BuildRoot
 
+現在の作業は **[Stage29: Aurora Home](docs/STAGE29.md)** です。Stage28の実機動作報告を受け、外周が縮む可動ハニカム、コントロールセンター、設定、復元可能なホーム設定を追加しています。Stage29の実機統合はこれから検証します。
+
 > スマートウォッチのスマートさを生かそう
 
 Pixel Watch 2 Wi-Fi (`aurora`) 向けに、**AsteroidOSを土台にした独自の丸型Aurora UI**を作るプロジェクトです。HarmonyOSとColorOS for Watchの方向を参考に、時計・タッチ操作・低消費電力を考えたUIを目指します。以前のBuildrootとUbuntu Touchによる調査も履歴として保持しています。
