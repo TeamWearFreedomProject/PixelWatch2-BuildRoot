@@ -1,0 +1,77 @@
+name: Stage 30 - Aurora system scene
+on:
+  pull_request:
+    paths:
+      - 'stage30/**'
+      - 'docs/STAGE30.md'
+      - '.github/workflows/stage30-aurora-shell.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: stage30-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  shell:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check source and redirect refusal tests
+        run: |
+          for tool in python3 tar xz file debugfs readelf dbus-run-session busctl cc; do command -v "$tool"; done
+          python3 -m compileall -q stage30
+          python3 -m unittest discover -s stage30/tests -p 'test_*.py' -v
+          bash -n stage30/build.sh stage30/deploy/install.sh stage30/deploy/restore.sh
+          git diff --check
+      - uses: actions/cache/restore@v4
+        id: inputs
+        with:
+          path: stage28-work/downloads
+          key: aurora-v1-sdk-inputs-${{ hashFiles('stage28/pins.json', 'stage27/v1-pins.json') }}
+      - name: Verify fixed SDK and V1 image
+        timeout-minutes: 12
+        run: python3 stage28/fetch_inputs.py stage28-work
+      - uses: actions/cache/save@v4
+        if: steps.inputs.outputs.cache-hit != 'true'
+        with:
+          path: stage28-work/downloads
+          key: ${{ steps.inputs.outputs.cache-primary-key }}
+      - name: Prepare the verified SDK
+        timeout-minutes: 14
+        run: python3 stage28/prepare_sdk.py stage28-work
+      - name: Build ARM32 bridge, log helper and preview
+        run: bash stage30/build.sh
+      - name: Read V1 runtime, icons and desktop assets
+        id: runtime
+        run: python3 stage30/prepare_runtime.py stage28-work
+      - name: Test privileged helper peer policy without reading kernel logs or starting SSH
+        run: python3 stage30/tests/helper_peers.py stage28-work stage30-artifacts
+      - name: Test the final binaries and redirected native compositor
+        if: ${{ !cancelled() && steps.runtime.outcome == 'success' }}
+        run: python3 stage30/check_native.py stage28-work stage30-artifacts
+      - name: Retrieve matching compositor source and package
+        run: |
+          mkdir -p stage30-work
+          git clone --filter=blob:none https://github.com/AsteroidOS/asteroid-launcher.git stage30-work/launcher
+          git -C stage30-work/launcher checkout c8c4d4bd469c8ae5223f4bb7a58e3c96982eb1d9
+          python3 stage30/package.py stage30-artifacts stage30-work
+          cd stage30-artifacts
+          sha256sum -c SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aurora-stage30-SYSTEM-SCENE
+          path: stage30-artifacts/
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: aurora-stage30-FAILURE-REPORTS
+          path: |
+            stage30-artifacts/
+            stage28-work/*json
+          retention-days: 30
+          if-no-files-found: ignore

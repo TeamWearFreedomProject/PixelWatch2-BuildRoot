@@ -1,14 +1,16 @@
 # PixelWatch2-BuildRoot
 
-現在の作業は **[Stage29: Aurora Home](docs/STAGE29.md)** です。Stage28の実機動作報告を受け、外周が縮む可動ハニカム、コントロールセンター、設定、復元可能なホーム設定を追加しています。Stage29の実機統合はこれから検証します。
+現在の作業は **[Stage30: Aurora system scene](docs/STAGE30.md)**。通知・予定・USB・歩数・Linuxコンソールと、文字盤へ戻るとハニカムを中央へリセットする動作を追加しています。Stage30の実機確認はこれからです。
+
+前段の[Stage29: Aurora Home](docs/STAGE29.md)では、可動ハニカム、コントロールセンター、設定を追加しました。Stage30ではメイン画面と通知・確認ダイアログをAurora側へ切り替えます。
 
 > スマートウォッチのスマートさを生かそう
 
 Pixel Watch 2 Wi-Fi (`aurora`) 向けに、**AsteroidOSを土台にした独自の丸型Aurora UI**を作るプロジェクトです。HarmonyOSとColorOS for Watchの方向を参考に、時計・タッチ操作・低消費電力を考えたUIを目指します。以前のBuildrootとUbuntu Touchによる調査も履歴として保持しています。
 
-**Status: Stage28 / V1向けARM32独立プレビュー。** 実機のBUILD_ID、32bit userspace、Qt 6.11.3、ランチャー版が公開V1と一致しました。[Stage28](docs/STAGE28.md)は公式SDKでARM32版を作り、V1ライブラリを使って実行・描画を検査します。実機のGUIセッションを検出して、そのユーザーで独立アプリを開く方式です。実機GUIの初試験はこれからです。
+**Status: Stage30 / V1向けAuroraメイン画面。** 実機のBUILD_ID、32bit userspace、Qt 6.11.3、ランチャー版が公開V1と一致しました。[Stage28](docs/STAGE28.md)の独立プレビューはユーザーから実機動作の報告を受けています。Stage30の新しい統合・USB切替・歩数は実機での確認が必要です。
 
-[Stage27](docs/STAGE27.md)のColorOS for Watch/HarmonyOSに着想を得た独自QMLを使用します。USB・Wi-Fi・Bluetoothの動作実績があるAsteroidOSのランチャーを残し、置換や自動起動設定は行いません。
+[Stage27](docs/STAGE27.md)からのColorOS for Watch/HarmonyOSに着想を得た独自QMLを使用します。動作実績のあるV1の表示・通知基盤を引き継ぎ、専用コピーがAuroraのQMLを直接読み込みます。元実行ファイルを保持し、専用の追加設定で自動起動と復元に対応します。
 
 Stage25/26はどちらも実機でCOMなし・自動Fastboot復帰なしでした。停止箇所は未確定で、これらの診断イメージの再試行は中止します。以前のBuildroot/UT調査は履歴として保持します。
 
@@ -28,8 +30,8 @@ Stage 23までのBuildroot調査も保持しています。Stage 22は実機でL
 ## Current plan
 
 1. 実機で動作したAsteroidOS V1一式をSHA256で固定し、Qtと起動セッションを把握する。
-2. 既存ランチャーを残して独立したAurora UIデモを試し、時計・ハニカム一覧・操作カードを調整する。
-3. 既存アプリ、通知、表冠、消灯/復帰との統合を進め、その後スピーカーを無効化する。
+2. 実機で動作した独立プレビューから、Auroraのメイン画面へ統合する。
+3. 通知、USB切替、歩数、消灯/復帰を実機で確認し、その後スピーカーを無効化する。
 
 ## Historical Buildroot plan
 
