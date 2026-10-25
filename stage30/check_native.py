@@ -59,7 +59,19 @@ def check(work,out):
     if prefix.exists() or prefix.is_symlink():raise ValueError('CI prefix already exists; refusing to replace it')
     subprocess.run(['sudo','ln','-s',str(bundle),str(prefix)],check=True)
     native=out/'native';native.mkdir(exist_ok=True)
+    asset_links=[]
     try:
+        # QEMU redirects file opens into -L, but the V1 mlite QFile::exists
+        # access check still sees the host namespace. Expose only the verified
+        # desktop/icon fixtures at their real absolute paths. Never overwrite
+        # a host entry, and remove only the exact links created by this test.
+        assets=work/'v1-runtime/usr/share'
+        pairs=[(p,Path('/usr/share/applications')/p.name) for p in sorted((assets/'applications').glob('*.desktop'))]
+        pairs.append((assets/'icons/asteroid',Path('/usr/share/icons/asteroid')))
+        assert pairs and all(src.exists() for src,_ in pairs)
+        for src,dst in pairs:
+            if dst.exists() or dst.is_symlink():raise ValueError('CI asset path already exists: '+str(dst))
+            subprocess.run(['sudo','ln','-s',str(src),str(dst)],check=True);asset_links.append((src,dst))
         cmd=command(work,bundle/'aurora-compositor',[],{'AURORA_CAPTURE_DIR':str(native),'WAYLAND_DISPLAY':'aurora-stage30-test'},session=True)
         with (out/'native.log').open('w') as log:
             process=subprocess.Popen(cmd,stdout=log,stderr=subprocess.STDOUT)
@@ -85,6 +97,8 @@ def check(work,out):
         assert native_report['native_apps_visible']>=1,'Installed V1 applications missing from honeycomb'
         assert native_report['honeycomb_resets_after_home']
     finally:
+        for src,dst in reversed(asset_links):
+            if dst.is_symlink() and dst.readlink()==src:subprocess.run(['sudo','rm',str(dst)],check=True)
         if prefix.is_symlink() and prefix.readlink()==bundle:subprocess.run(['sudo','rm',str(prefix)],check=True)
     for folder in (screenshots,native):
         for page in PAGES:assert (folder/(page+'.png')).stat().st_size>500
