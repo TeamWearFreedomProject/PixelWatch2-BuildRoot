@@ -1,5 +1,7 @@
 # PixelWatch2-BuildRoot
 
+現在の作業は **[Stage30: Aurora system scene](docs/STAGE30.md)**。通知・予定・USB・歩数・Linuxコンソールと、文字盤へ戻るとハニカムを中央へリセットする動作を追加しています。Stage30の実機確認はこれからです。
+
 現在の作業は **[Stage29: Aurora Home](docs/STAGE29.md)** です。Stage28の実機動作報告を受け、外周が縮む可動ハニカム、コントロールセンター、設定、復元可能なホーム設定を追加しています。Stage29の実機統合はこれから検証します。
 
 > スマートウォッチのスマートさを生かそう
