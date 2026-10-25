@@ -45,10 +45,12 @@ jobs:
       - name: Build ARM32 bridge, log helper and preview
         run: bash stage30/build.sh
       - name: Read V1 runtime, icons and desktop assets
+        id: runtime
         run: python3 stage30/prepare_runtime.py stage28-work
       - name: Test privileged helper peer policy without reading kernel logs or starting SSH
         run: python3 stage30/tests/helper_peers.py stage28-work stage30-artifacts
       - name: Test the final binaries and redirected native compositor
+        if: ${{ !cancelled() && steps.runtime.outcome == 'success' }}
         run: python3 stage30/check_native.py stage28-work stage30-artifacts
       - name: Retrieve matching compositor source and package
         run: |

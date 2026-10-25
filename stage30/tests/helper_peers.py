@@ -4,7 +4,7 @@
 No kernel log is read and no SSH/systemd operation is requested. The successful
 ready caller is a small root-owned fixture executable, not the real GUI.
 """
-import grp,json,os,shutil,socket,subprocess,sys,tempfile,time
+import json,os,socket,subprocess,sys,time
 from pathlib import Path
 
 CLIENT=r'''
@@ -20,7 +20,7 @@ def main(work,out):
     assert os.geteuid()!=0,'Run as the ordinary CI user with sudo available'
     prefix=Path('/var/lib/aurora');runtime=Path('/run/aurora')
     assert not prefix.exists() and not prefix.is_symlink() and not runtime.exists(),'Fixture paths already exist'
-    uid=os.getuid();gid=os.getgid();group=grp.getgrgid(gid).gr_name
+    uid=os.getuid();gid=os.getgid()
     source=work/'peer-client.c';source.write_text(CLIENT);client=work/'peer-client'
     subprocess.run(['cc',str(source),'-o',str(client)],check=True)
     subprocess.run(['sudo','mkdir',str(prefix),str(runtime)],check=True)
@@ -29,7 +29,10 @@ def main(work,out):
     installed=prefix/'aurora-compositor'
     subprocess.run(['sudo','install','-o','0','-g','0','-m','0755',str(client),str(installed)],check=True)
     qemu=work/'sdk/sysroots/x86_64-oesdk-linux/usr/bin/qemu-arm'
-    cmd=['sudo','-u','root','-g',group,str(qemu),'-L',str(work/'v1-runtime'),str(work/'arm32-shell/aurora-helper'),str(uid)]
+    # The runner permits ordinary sudo, but does not grant sudo's -g override.
+    # Match the service's primary GID inside the already-root fixture process.
+    launcher='import os,sys;os.setgid(int(sys.argv[1]));os.execv(sys.argv[2],sys.argv[2:])'
+    cmd=['sudo',sys.executable,'-c',launcher,str(gid),str(qemu),'-L',str(work/'v1-runtime'),str(work/'arm32-shell/aurora-helper'),str(uid)]
     process=subprocess.Popen(cmd,start_new_session=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
     def request(data):
         s=socket.socket(socket.AF_UNIX);s.settimeout(3);s.connect(str(runtime/'control.sock'));s.sendall(data);b=s.recv(2048);s.close();return b

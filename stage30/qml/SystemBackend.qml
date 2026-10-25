@@ -31,7 +31,7 @@ Item {
     Timer { id:verify; interval:2500; property string kind; property bool wanted
         onTriggered: {
             var actual=kind==="wifi" ? root.wifiOn : root.bluetoothOn
-            root.message=actual===wanted ? "変更しました" : "反映されませんでした。標準設定も確認してね"
+            root.message=actual===wanted ? "変更しました" : "反映されませんでした。接続状態を確認してね"
         }
     }
     function toggleWifi() { if(!writable)return; verify.kind="wifi";verify.wanted=!wifi.powered;wifi.powered=verify.wanted;message="変更中…";verify.restart() }

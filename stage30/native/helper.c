@@ -26,12 +26,12 @@ int main(int argc,char**argv){
     uid_t allowed=(uid_t)number;
     clearenv();setenv("PATH","/usr/bin:/bin",1);setenv("LANG","C",1);
     signal(SIGPIPE,SIG_IGN);umask(0007);
-    int server=socket(AF_UNIX,SOCK_STREAM|SOCK_CLOEXEC,0);if(server<0)return 3;
+    int server=socket(AF_UNIX,SOCK_STREAM|SOCK_CLOEXEC,0);if(server<0){perror("control socket");return 3;}
     struct sockaddr_un address={.sun_family=AF_UNIX};strcpy(address.sun_path,"/run/aurora/control.sock");
     unlink(address.sun_path);unlink("/run/aurora/ready");
-    if(bind(server,(void*)&address,sizeof(address))||chmod(address.sun_path,0660)||listen(server,4))return 4;
+    if(bind(server,(void*)&address,sizeof(address))||chmod(address.sun_path,0660)||listen(server,4)){perror("control socket setup");return 4;}
     int timer=timerfd_create(CLOCK_BOOTTIME,TFD_CLOEXEC);
-    struct itimerspec deadline={.it_value={60,0}};if(timer<0||timerfd_settime(timer,0,&deadline,0))return 5;
+    struct itimerspec deadline={.it_value={60,0}};if(timer<0||timerfd_settime(timer,0,&deadline,0)){perror("startup timer");return 5;}
     int confirmed=0;
     for(;;){
         struct pollfd fds[2]={{server,POLLIN,0},{timer,POLLIN,0}};

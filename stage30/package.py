@@ -8,7 +8,7 @@ def main(out,work):
     bundle=out/'aurora-stage30'
     (bundle/'LICENSES').mkdir(exist_ok=True)
     shutil.copyfile(work/'launcher/lipstick/LICENSE.LGPL',bundle/'LICENSES/LGPL-2.1.txt')
-    (bundle/'UPSTREAM.txt').write_text('AsteroidOS asteroid-launcher c8c4d4bd469c8ae5223f4bb7a58e3c96982eb1d9\nhttps://github.com/AsteroidOS/asteroid-launcher/tree/c8c4d4bd469c8ae5223f4bb7a58e3c96982eb1d9\nMatching source and licenses: aurora-stage30-source.zip in the same GitHub artifact.\nOnly the entry URL in .rodata is redirected; see compositor-patch.json.\n')
+    (bundle/'UPSTREAM.txt').write_text('AsteroidOS asteroid-launcher c8c4d4bd469c8ae5223f4bb7a58e3c96982eb1d9\nhttps://github.com/AsteroidOS/asteroid-launcher/tree/c8c4d4bd469c8ae5223f4bb7a58e3c96982eb1d9\nMatching source and licenses: aurora-stage30-source.zip included in this download and the GitHub artifact.\nOnly the entry URL in .rodata is redirected; see compositor-patch.json.\n')
     core='\n'.join(sha(p)+'  '+str(p.relative_to(bundle)) for p in sorted(bundle.rglob('*')) if p.is_file() and p.name not in ('build.json','SHA256SUMS'))+'\n'
     ident=hashlib.sha256(core.encode()).hexdigest()[:12]
     upload='/home/ceres/aurora-upload-'+ident;remote=upload+'/aurora-stage30'
@@ -61,7 +61,7 @@ adb -s $watchSerial shell "cd '$remoteStage30' && sh install.sh"
 
 - 時計から上へスワイプ: ハニカム。戻るボタンで時計へ。
 - 時計から下へ: コントロールセンター。右へ: 通知。左へ: カレンダー。
-- 予定: 月表示の下へスクロールして追加。種類と15分単位の時刻を選び、時計内へ保存。
+- 予定: 下の「＋ 予定」から追加。種類と15分単位の時刻を選び、時計内へ保存。
   同期済みカレンダーの予定も表示する。
 - 設定 → USB: ADB、SSH / USBネットワーク、充電専用を選択。
   SSHと充電専用ではADBが切れる。時計のUSB画面から戻せる。
@@ -103,6 +103,7 @@ Stage29を既定にしていた場合は、その設定を使う以前のラン�
         for p in sorted(bundle.rglob('*')):
             if p.is_file():z.write(p,str(p.relative_to(out)))
         for name in ('WINDOWS-STAGE30.md','README-STAGE30.md'):z.write(out/name,name)
+        z.write(source,source.name)
     (out/'SHA256SUMS').write_text('\n'.join(sha(p)+'  '+str(p.relative_to(out)) for p in sorted(out.rglob('*')) if p.is_file() and p!=out/'SHA256SUMS')+'\n')
     print(json.dumps({'archive':archive.name,'sha256':sha(archive),'upload_parent':upload,'remote_package':remote}),flush=True)
 if __name__=='__main__':main(Path(sys.argv[1]).resolve(),Path(sys.argv[2]).resolve())
