@@ -54,6 +54,7 @@ PageFrame {
             RoundButton { width:280;height:47;text:"＋ 予定を追加";onClicked:root.editing=true }
         }
     }
+    RoundButton { z:5;x:140;y:337;width:104;height:29;text:"＋ 予定";onClicked:root.editing=true }
     Rectangle {
         anchors.fill:parent;visible:root.editing;color:"black";z:20
         Text { x:65;y:77;width:254;text:"予定を追加";color:"white";font.pixelSize:25;horizontalAlignment:Text.AlignHCenter }

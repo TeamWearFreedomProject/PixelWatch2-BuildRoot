@@ -35,7 +35,7 @@ AuroraSystem::AuroraSystem(QObject*parent):QObject(parent),m_state(QDir::homePat
     connect(&m_step,&QSensor::readingChanged,this,[this](){if(!m_step.reading())return;m_steps=m_state.ingestStep(m_step.reading()->steps(),readText("/proc/sys/kernel/random/boot_id").trimmed(),QDate::currentDate());m_stepValid=true;if(!m_flush.isActive())m_flush.start();emit stepsChanged();});
     if(!m_test){m_step.setAlwaysOn(true);m_stepAvailable=m_step.start();refreshUsb();}
     connect(&m_confirm,&QTimer::timeout,this,[this](){if(m_framed&&m_scene)helper("ready\n",[this](bool ok,QByteArray){if(ok)m_confirm.stop();});});
-    m_confirm.setInterval(10000);
+    m_confirm.setInterval(2000);
 }
 AuroraSystem::~AuroraSystem(){try{if(m_stepValid)m_state.save();}catch(...){}}
 QString AuroraSystem::readText(const QString&path)const{QFile f(path);if(!f.open(QIODevice::ReadOnly))return "読めません: "+f.errorString();return QString::fromUtf8(f.read(262144));}
@@ -65,7 +65,7 @@ void AuroraSystem::refreshUsb(){
     usbCall(this,"get_modes",{},[this](QDBusMessage r){if(r.type()==QDBusMessage::ErrorMessage){m_error=r.errorMessage();emit errorChanged();return;}if(!r.arguments().isEmpty()){auto all=r.arguments().first().toString().split(QRegularExpression("[,\\s]+"),Qt::SkipEmptyParts);m_usbModes.clear();for(const auto&mode:QStringList{"adb_mode","developer_mode","charging_only"})if(all.contains(mode)||mode=="charging_only")m_usbModes<<mode;emit usbChanged();}});
     auto msg=QDBusMessage::createMethodCall(service,object,"org.freedesktop.DBus.Introspectable","Introspect");
     auto*w=new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(msg,4000),this);
-    connect(w,&QDBusPendingCallWatcher::finished,this,[this,w](){auto r=w->reply();w->deleteLater();if(r.arguments().isEmpty())return;auto xml=r.arguments().first().toString();for(const auto&name:QStringList{"get_mode","get_current_mode","get_current_state"})if(xml.contains("name=\""+name+"\"")){m_currentMethod=name;usbCall(this,name,{},[this](QDBusMessage state){if(state.type()!=QDBusMessage::ErrorMessage&&!state.arguments().isEmpty()){m_usbMode=state.arguments().first().toString();emit usbChanged();}});break;}});
+    connect(w,&QDBusPendingCallWatcher::finished,this,[this,w](){auto r=w->reply();w->deleteLater();if(r.arguments().isEmpty())return;auto xml=r.arguments().first().toString();for(const auto&name:QStringList{"mode_request","get_mode","get_current_mode","get_current_state"})if(xml.contains("name=\""+name+"\"")){m_currentMethod=name;usbCall(this,name,{},[this](QDBusMessage state){if(state.type()!=QDBusMessage::ErrorMessage&&!state.arguments().isEmpty()){m_usbMode=state.arguments().first().toString();emit usbChanged();}});break;}});
 }
 void AuroraSystem::switchUsb(const QString&mode){
     if(m_test||!m_native){m_error="USBの切替はホーム導入後に利用できます";emit errorChanged();return;}
@@ -84,7 +84,7 @@ void AuroraSystem::captureNext(){
     static const QStringList pages{"clock","apps","control","settings","notifications","calendar","usb","steps","terminal","system","stopwatch","timer","calculator","style","about"};
     if(!m_capture||!m_capture->window()){qApp->exit(31);return;}
     if(m_pageIndex==pages.size()){finishCapture();return;}
-    auto*win=m_capture->window();win->resize(384,384);m_capture->setProperty("motion",false);m_capture->setProperty("previewTime",true);
+    auto*win=m_capture->window();win->resize(384,384);win->show();m_capture->setProperty("motion",false);m_capture->setProperty("previewTime",true);
     if(m_native && pages[m_pageIndex]=="notifications") {
         auto*context=QQmlEngine::contextForObject(m_capture);
         auto*presenter=context?context->contextProperty("notificationPreviewPresenter").value<QObject*>():nullptr;

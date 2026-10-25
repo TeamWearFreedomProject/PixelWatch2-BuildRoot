@@ -29,14 +29,14 @@ def main(work,out):
     installed=prefix/'aurora-compositor'
     subprocess.run(['sudo','install','-o','0','-g','0','-m','0755',str(client),str(installed)],check=True)
     qemu=work/'sdk/sysroots/x86_64-oesdk-linux/usr/bin/qemu-arm'
-    cmd=['sudo','-g',group,str(qemu),'-L',str(work/'v1-runtime'),str(work/'arm32-shell/aurora-helper'),str(uid)]
+    cmd=['sudo','-u','root','-g',group,str(qemu),'-L',str(work/'v1-runtime'),str(work/'arm32-shell/aurora-helper'),str(uid)]
     process=subprocess.Popen(cmd,start_new_session=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
     def request(data):
         s=socket.socket(socket.AF_UNIX);s.settimeout(3);s.connect(str(runtime/'control.sock'));s.sendall(data);b=s.recv(2048);s.close();return b
     try:
         for attempt in range(60):
             if (runtime/'control.sock').exists():break
-            if process.poll() is not None:raise ValueError(process.stderr.read().decode(errors='replace'))
+            if process.poll() is not None:raise ValueError(f'Helper exit {process.returncode}: '+process.stderr.read().decode(errors='replace'))
             time.sleep(.05)
         assert b'Unsupported operation' in request(b'not-a-command\n')
         assert b'not the installed compositor' in request(b'ready\n')

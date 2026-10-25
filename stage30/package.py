@@ -17,7 +17,7 @@ def main(out,work):
     (bundle/'SHA256SUMS').write_text(manifest)
     guide='''# Stage30 / Windows手順
 
-時計の初期設定を終え、Stage28/29等の独立プレビューを閉じておく。
+時計の初期設定を終え、画面を点灯させ、Stage28/29等の独立プレビューを閉じておく。
 ZIPを展開し、aurora-stage30フォルダーが見える場所でPowerShellを開く。
 adb shell内ならexitでPowerShellへ戻る。WATCH_SERIALを時計のシリアルへ変更する。
 

@@ -21,5 +21,6 @@ Rectangle {
         RoundButton { width:120;height:33;text:root.live?"自動更新 ON":"自動更新 OFF";onClicked:root.live=!root.live }
     }
     Timer { interval:2000;running:root.visible&&root.live;repeat:true;onTriggered:root.refresh() }
+    Text { x:100;y:354;width:184;text:"読み取り専用";color:"#627e69";font.pixelSize:10;horizontalAlignment:Text.AlignHCenter }
     Component.onCompleted:refresh()
 }
