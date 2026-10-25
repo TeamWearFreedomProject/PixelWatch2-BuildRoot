@@ -13,7 +13,7 @@ def command(work,exe,args,extra=None,session=False):
             'QT_QUICK_BACKEND':'software','QT_IM_MODULE':'none','QML_DISABLE_DISK_CACHE':'1',
             'QML_IMPORT_PATH':str(exe.parent/'qml')+':'+str(work/'v1-runtime/usr/lib/qml'),
             'DBUS_SYSTEM_BUS_ADDRESS':'disabled:','DBUS_SESSION_BUS_ADDRESS':os.environ.get('DBUS_SESSION_BUS_ADDRESS','disabled:') if session else 'disabled:',
-            'HOME':str(work/'guest-home'),'XDG_RUNTIME_DIR':str(work/'guest-runtime'),'TZ':'UTC'}
+            'HOME':str(work/'guest-home'),'XDG_RUNTIME_DIR':os.environ.get('AURORA_TEST_RUNTIME',str(work/'guest-runtime')),'TZ':'UTC'}
     for name in ('guest-home','guest-runtime'):(work/name).mkdir(exist_ok=True,mode=0o700)
     (work/'guest-runtime').chmod(0o700)
     values.update(extra or {})
@@ -67,7 +67,7 @@ def check(work,out):
                 notified=False
                 for attempt in range(35):
                     if process.poll() is not None:break
-                    result=subprocess.run(['busctl','--user','--timeout=1','call','org.freedesktop.Notifications','/org/freedesktop/Notifications','org.freedesktop.Notifications','Notify','susssasa{sv}i','Aurora CI','0','','通知のテスト','V1の通知バックエンドから受信しました','0','0','-1'],capture_output=True,text=True)
+                    result=subprocess.run(['busctl','--user','--timeout=1','call','org.freedesktop.Notifications','/org/freedesktop/Notifications','org.freedesktop.Notifications','Notify','susssasa{sv}i','Aurora CI','0','','通知のテスト','V1の通知バックエンドから受信しました','0','0','0'],capture_output=True,text=True)
                     if result.returncode==0:notified=True;break
                     time.sleep(0.1)
                 code=process.wait(timeout=45)
@@ -76,18 +76,20 @@ def check(work,out):
                 try:process.wait(timeout=5)
                 except subprocess.TimeoutExpired:process.kill()
                 raise
-        assert code==0,'Native V1 compositor did not render the Aurora root'
+        if code!=0:print((out/'native.log').read_text(errors='replace')[-16000:],file=sys.stderr)
+        assert code==0,f'Native V1 compositor did not render the Aurora root (exit {code})'
         assert notified,'Notification DBus fixture failed'
         native_report=json.loads((native/'capture-result.json').read_text())
         assert native_report['native_compositor'] and native_report['first_frame_signal']
         assert native_report['notifications']>=1,'Real notification missing from native model'
+        assert native_report['native_apps_visible']>=1,'Installed V1 applications missing from honeycomb'
         assert native_report['honeycomb_resets_after_home']
     finally:
         if prefix.is_symlink() and prefix.readlink()==bundle:subprocess.run(['sudo','rm',str(prefix)],check=True)
     for folder in (screenshots,native):
         for page in PAGES:assert (folder/(page+'.png')).stat().st_size>500
     result={'status':'PASS','bits':32,'qt_runtime':'6.11.3','preview_pages':15,'native_compositor_pages':15,
-            'native_first_frame_signal':True,'native_notifications_verified':True,'honeycomb_resets_after_home':True,
+            'native_first_frame_signal':True,'native_notifications_verified':True,'native_apps_verified':True,'honeycomb_resets_after_home':True,
             'scene_input_checks':3,'state_checks':12,'session_checks':7,'kernel_or_usb_changed_on_watch':False,
             'watch_hardware_tested':False,'usb_modes_hardware_tested':False,'step_sensor_hardware_tested':False,
             'preview_sha256':hashlib.sha256((bundle/'aurora-preview').read_bytes()).hexdigest(),
@@ -98,6 +100,9 @@ if __name__=='__main__':
     work=Path(sys.argv[1]).resolve();out=Path(sys.argv[2]).resolve()
     if not os.environ.get('AURORA_ISOLATED_BUS'):
         home=work/'bus-home';home.mkdir(parents=True,exist_ok=True)
-        env=os.environ.copy();env.update({'AURORA_ISOLATED_BUS':'1','HOME':str(home),'XDG_CONFIG_HOME':str(home/'config'),'XDG_DATA_HOME':str(home/'data')})
-        raise SystemExit(subprocess.call(['dbus-run-session','--',sys.executable,*sys.argv],env=env))
+        # Wayland's AF_UNIX socket path must fit sockaddr_un.sun_path (108 bytes).
+        # A checked-out Actions workspace path is too long for that socket.
+        with tempfile.TemporaryDirectory(prefix='aurora-s30-') as runtime:
+            env=os.environ.copy();env.update({'AURORA_ISOLATED_BUS':'1','AURORA_TEST_RUNTIME':runtime,'HOME':str(home),'XDG_CONFIG_HOME':str(home/'config'),'XDG_DATA_HOME':str(home/'data')})
+            raise SystemExit(subprocess.call(['dbus-run-session','--',sys.executable,*sys.argv],env=env))
     check(work,out)

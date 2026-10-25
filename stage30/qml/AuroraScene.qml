@@ -37,7 +37,7 @@ Rectangle {
         ]
         var extra=[{app:"notifications",title:"通知",glyph:"bell",tint:"#f2756c"},{app:"calendar",title:"カレンダー",glyph:"calendar",tint:"#e65b83"},{app:"usb",title:"USB",glyph:"usb",tint:"#5298a6"},{app:"steps",title:"歩数",glyph:"steps",tint:"#3db57d"},{app:"terminal",title:"Linuxコンソール",glyph:"terminal",tint:"#4f8764"},{app:"system",title:"システム",glyph:"system",tint:"#6278a1"}]
         data=data.concat(extra)
-        if (nativeModel) for(var i=0;i<nativeModel.count;++i) {
+        if (nativeModel) for(var i=0;i<nativeModel.itemCount;++i) {
             var obj=nativeModel.get(i)
             if(/asteroid-(settings|calendar|calculator|stopwatch|timer|flashlight)\.desktop$/.test(obj.filePath||""))continue
             data.push({app:"native",title:obj.title,glyph:"apps",tint:["#4186ed","#e65772","#24a87b","#9b67ed","#ed9a36"][i%5],nativeObject:obj})
@@ -195,7 +195,7 @@ Rectangle {
     }
     Component {
         id:settingsPage
-        SettingsPage { backend:root.backend;integrated:root.integrated;motion:root.motion
+        SettingsPage { backend:root.backend;integrated:root.bridge?root.bridge.nativeShell:root.integrated;motion:root.motion
             onUsb:root.openPage("usb");onSystem:root.openPage("system")
             onBack:root.openPage("control");onStyle:root.openPage("style");onAbout:root.openPage("about") }
     }

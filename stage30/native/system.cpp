@@ -114,7 +114,7 @@ void AuroraSystem::finishCapture(){
                 if(!hex||qAbs(hex->property("panX").toDouble())>0.01||qAbs(hex->property("panY").toDouble())>0.01){qApp->exit(37);return;}
                 QObject*model=m_capture->property("notificationModel").value<QObject*>();
                 const int notificationCount=model?model->property("itemCount").toInt():0;
-                QJsonObject report{{"notifications",notificationCount},{"status","PASS"},{"native_compositor",m_native},{"first_frame_signal",m_framed},{"pages",15},{"gesture_checks",3},{"honeycomb_resets_after_home",true}};
+                QJsonObject report{{"native_apps_visible",m_capture->property("appCount").toInt()-15},{"notifications",notificationCount},{"status","PASS"},{"native_compositor",m_native},{"first_frame_signal",m_framed},{"pages",15},{"gesture_checks",3},{"honeycomb_resets_after_home",true}};
                 QFile out(m_captureDir+"/capture-result.json");if(!out.open(QIODevice::WriteOnly)){qApp->exit(38);return;}out.write(QJsonDocument(report).toJson());out.close();
                 qApp->exit(0);
             });
